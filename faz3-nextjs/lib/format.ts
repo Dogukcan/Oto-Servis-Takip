@@ -41,6 +41,12 @@ export function plakaAnahtari(plaka: string): string {
   return plaka.toUpperCase().replace(/\s+/g, "");
 }
 
+// "2026-10-01" -> "01.10.2026". Ekranda gösterim içindir; veritabanında tarih ISO kalır.
+export function tarihTR(isoTarih: string): string {
+  const [yil, ay, gun] = isoTarih.split("-");
+  return `${gun}.${ay}.${yil}`;
+}
+
 // "YYYY-MM-DD" formatında, takvimde gerçekten var olan bir tarih mi diye bakar
 // (ör. "2026-02-30" formatı doğru ama tarih geçersiz, bunu da reddeder).
 export function tarihGecerliMi(tarih: string): boolean {
