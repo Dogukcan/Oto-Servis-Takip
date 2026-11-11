@@ -70,6 +70,9 @@ if (aracSayisi === 0) {
 // düzeltilecek kayıt kalmadığında hiçbir şey yapmaz. Plaka kuralına uymayan
 // eski kayıtlara dokunmaz.
 const plakalariTekBicimeGetir = db.transaction(() => {
+  const sonIslemNo = db.prepare(
+    "SELECT MAX(id) AS no FROM islemler WHERE plaka = ?"
+  );
   const araclar = db
     .prepare("SELECT plaka, musteri, telefon FROM araclar")
     .all() as { plaka: string; musteri: string; telefon: string }[];
@@ -85,6 +88,16 @@ const plakalariTekBicimeGetir = db.transaction(() => {
       db.prepare(
         "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
       ).run(dogruPlaka, arac.musteri, arac.telefon);
+    } else {
+      // İki kayıt birleşiyor. En son iş hangi kayda girildiyse müşteri adı ve
+      // telefonu ondan alınır; müşteri numara değiştirdiyse yenisi kalmalı.
+      const kaynakSonIs = sonIslemNo.get(arac.plaka) as { no: number | null };
+      const hedefSonIs = sonIslemNo.get(dogruPlaka) as { no: number | null };
+      if ((kaynakSonIs.no ?? 0) > (hedefSonIs.no ?? 0)) {
+        db.prepare(
+          "UPDATE araclar SET musteri = ?, telefon = ? WHERE plaka = ?"
+        ).run(arac.musteri, arac.telefon, dogruPlaka);
+      }
     }
     db.prepare("UPDATE islemler SET plaka = ? WHERE plaka = ?").run(
       dogruPlaka,
@@ -94,4 +107,6 @@ const plakalariTekBicimeGetir = db.transaction(() => {
   }
 });
 
-plakalariTekBicimeGetir();
+// Yazma kilidini baştan alır. Derleme sırasında birkaç süreç bu dosyayı aynı
+// anda yüklerse biri diğerini bekler, yarıda kilit hatası vermez.
+plakalariTekBicimeGetir.immediate();

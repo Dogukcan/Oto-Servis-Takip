@@ -30,7 +30,12 @@ const PLAKA_PARCALARI =
 // "34 ABC 123" olur. Aynı aracın boşluk farkıyla iki ayrı kayıt olmasını bu
 // engeller. Geçerli bir plaka değilse null döner.
 export function plakaBicimle(plaka: string): string | null {
-  const esleme = PLAKA_PARCALARI.exec(plaka.toUpperCase().replace(/\s+/g, ""));
+  // Türkçe klavye büyük harf modunda "i" tuşu için "İ" üretir; plakada bu "I"dır.
+  const sade = plaka.replace(/[İı]/g, "I").replace(/\s+/g, "");
+  // Sadece düz harf ve rakam: "ß" gibi harfler büyütülünce "SS" olup başka bir
+  // plakaya dönüşmesin.
+  if (!/^[0-9A-Za-z]+$/.test(sade)) return null;
+  const esleme = PLAKA_PARCALARI.exec(sade.toUpperCase());
   if (!esleme) return null;
   return `${esleme[1]} ${esleme[2]} ${esleme[3]}`;
 }

@@ -74,6 +74,7 @@ export default function KayitSayfasi() {
   const [sunucuHatasi, setSunucuHatasi] = useState<string | null>(null);
   const [garantiVar, setGarantiVar] = useState(false);
   const [plaka, setPlaka] = useState("");
+  const [kaydediliyor, setKaydediliyor] = useState(false);
 
   const plakaOnizleme = plakaBicimle(plaka);
 
@@ -89,6 +90,7 @@ export default function KayitSayfasi() {
 
   async function gonder(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (kaydediliyor) return;
     const formElementi = e.currentTarget;
     const form = new FormData(e.currentTarget);
     const girilenPlaka = plaka.trim();
@@ -128,25 +130,39 @@ export default function KayitSayfasi() {
       return;
     }
 
+    // The button stays locked from here until the redirect, so a double tap
+    // cannot save the same job twice.
     setSunucuHatasi(null);
-    const yanit = await fetch("/api/kayit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plaka: girilenPlaka,
-        musteri,
-        telefon,
-        yapilanIs,
-        ucret: Number(ucret),
-        garantiBitis,
-        sonrakiBakim,
-      }),
-    });
+    setKaydediliyor(true);
+    try {
+      const yanit = await fetch("/api/kayit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plaka: girilenPlaka,
+          musteri,
+          telefon,
+          yapilanIs,
+          ucret: Number(ucret),
+          garantiBitis,
+          sonrakiBakim,
+        }),
+      });
 
-    if (!yanit.ok) {
-      const govde = (await yanit.json()) as { hata?: string };
-      setSunucuHatasi(govde.hata ?? "Kayıt sırasında bir hata oluştu.");
+      if (!yanit.ok) {
+        // A server error may come back without a JSON body.
+        const govde = (await yanit.json().catch(() => ({}))) as { hata?: string };
+        setSunucuHatasi(govde.hata ?? "Kayıt sırasında bir hata oluştu.");
+        setBasarili(false);
+        setKaydediliyor(false);
+        return;
+      }
+    } catch {
+      setSunucuHatasi(
+        "Sunucuya ulaşılamadı. Kaydın gidip gitmediğini araç listesinden kontrol edip tekrar deneyin."
+      );
       setBasarili(false);
+      setKaydediliyor(false);
       return;
     }
 
@@ -274,8 +290,8 @@ export default function KayitSayfasi() {
         </div>
 
         <div className="eylem-satiri">
-          <button className="buyuk-buton" type="submit">
-            Kaydet
+          <button className="buyuk-buton" type="submit" disabled={kaydediliyor}>
+            {kaydediliyor ? "Kaydediliyor..." : "Kaydet"}
           </button>
           <Link className="buyuk-buton ikincil-buton" href="/">
             Vazgeç
