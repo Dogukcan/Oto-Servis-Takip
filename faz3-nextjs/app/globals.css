@@ -490,6 +490,61 @@ form.kayit-formu {
   max-width: 600px;
 }
 
+/*
+  The record form: two panels side by side, who the car belongs to on the
+  left and what was done on the right. They stack on a narrow screen.
+*/
+
+form.kayit-genis {
+  max-width: none;
+}
+
+.form-izgara {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.form-paneli {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--cizgi);
+  border-radius: 12px;
+  background: var(--yuzey);
+}
+
+/* Fixed height, so the plate preview appearing does not push the fields down. */
+.panel-basligi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+}
+
+.panel-basligi h2 {
+  margin: 0;
+}
+
+.alan-notu {
+  color: var(--soluk);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+@media (max-width: 899px) {
+  .form-izgara {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-paneli {
+    padding: 18px;
+  }
+}
+
 form.kayit-formu label {
   display: flex;
   flex-direction: column;

@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState, type FormEvent, type RefObject } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { dogrulaPlaka, telefonGecerliMi } from "@/lib/format";
+import { dogrulaPlaka, plakaBicimle, telefonGecerliMi } from "@/lib/format";
+import { Plaka } from "@/components/Plaka";
 
 interface FormHatalari {
   plaka?: string;
@@ -13,6 +15,8 @@ interface FormHatalari {
   garantiBitis?: string;
   sonrakiBakim?: string;
 }
+
+type Alan = keyof FormHatalari;
 
 const HIZLI_TARIH_SECENEKLERI = [
   { etiket: "+6 Ay", ay: 6 },
@@ -32,7 +36,13 @@ function bugundenAySonra(ay: number): string {
   return `${yil}-${ayNo}-${gun}`;
 }
 
-function HizliTarihButonlari({ hedef }: { hedef: RefObject<HTMLInputElement | null> }) {
+function HizliTarihButonlari({
+  hedef,
+  secildi,
+}: {
+  hedef: RefObject<HTMLInputElement | null>;
+  secildi: () => void;
+}) {
   return (
     <div className="hizli-tarih">
       {HIZLI_TARIH_SECENEKLERI.map((secenek) => (
@@ -41,7 +51,11 @@ function HizliTarihButonlari({ hedef }: { hedef: RefObject<HTMLInputElement | nu
           type="button"
           className="hizli-tarih-butonu"
           onClick={() => {
-            if (hedef.current) hedef.current.value = bugundenAySonra(secenek.ay);
+            if (!hedef.current) return;
+            hedef.current.value = bugundenAySonra(secenek.ay);
+            // Setting the value from code fires no change event, so the
+            // field's error is cleared here.
+            secildi();
           }}
         >
           {secenek.etiket}
@@ -59,12 +73,25 @@ export default function KayitSayfasi() {
   const [basarili, setBasarili] = useState(false);
   const [sunucuHatasi, setSunucuHatasi] = useState<string | null>(null);
   const [garantiVar, setGarantiVar] = useState(false);
+  const [plaka, setPlaka] = useState("");
+
+  const plakaOnizleme = plakaBicimle(plaka);
+
+  // An error goes away as soon as its field is edited, not on the next save.
+  function hatayiTemizle(alan: Alan) {
+    setHatalar((onceki) => {
+      if (!onceki[alan]) return onceki;
+      const kalan = { ...onceki };
+      delete kalan[alan];
+      return kalan;
+    });
+  }
 
   async function gonder(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formElementi = e.currentTarget;
     const form = new FormData(e.currentTarget);
-    const plaka = String(form.get("plaka") ?? "").trim();
+    const girilenPlaka = plaka.trim();
     const musteri = String(form.get("musteri") ?? "").trim();
     const telefon = String(form.get("telefon") ?? "").trim();
     const yapilanIs = String(form.get("yapilanIs") ?? "").trim();
@@ -73,7 +100,7 @@ export default function KayitSayfasi() {
     const sonrakiBakim = String(form.get("sonrakiBakim") ?? "").trim();
 
     const yeniHatalar: FormHatalari = {};
-    if (!dogrulaPlaka(plaka)) {
+    if (!dogrulaPlaka(girilenPlaka)) {
       yeniHatalar.plaka = "Geçerli bir plaka girin (örn. 34 ABC 123).";
     }
     if (musteri === "") {
@@ -106,7 +133,7 @@ export default function KayitSayfasi() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        plaka,
+        plaka: girilenPlaka,
         musteri,
         telefon,
         yapilanIs,
@@ -125,6 +152,7 @@ export default function KayitSayfasi() {
 
     setBasarili(true);
     formElementi.reset();
+    setPlaka("");
     setGarantiVar(false);
     setTimeout(() => router.push("/"), 800);
   }
@@ -132,66 +160,130 @@ export default function KayitSayfasi() {
   return (
     <>
       <h1>Yeni Kayıt</h1>
-      <form className="kayit-formu" onSubmit={gonder}>
-        <label>
-          Plaka
-          <input type="text" name="plaka" placeholder="34 ABC 123" />
-          {hatalar.plaka && <span className="hata-metni">{hatalar.plaka}</span>}
-        </label>
-        <label>
-          Müşteri Adı
-          <input type="text" name="musteri" placeholder="Ahmet Yılmaz" />
-          {hatalar.musteri && <span className="hata-metni">{hatalar.musteri}</span>}
-        </label>
-        <label>
-          Telefon
-          <input type="tel" name="telefon" placeholder="532 111 22 33 (başına 0 eklemenize gerek yok)" />
-          {hatalar.telefon && <span className="hata-metni">{hatalar.telefon}</span>}
-        </label>
-        <label>
-          Yapılan İş
-          <input type="text" name="yapilanIs" placeholder="Akü değişimi" />
-          {hatalar.yapilanIs && <span className="hata-metni">{hatalar.yapilanIs}</span>}
-        </label>
-        <label>
-          Ücret (TL)
-          <input type="number" name="ucret" placeholder="1500" min="0" step="1" />
-          {hatalar.ucret && <span className="hata-metni">{hatalar.ucret}</span>}
-        </label>
-        <div className="tarih-alani">
-          <label className="onay-satiri">
-            <input
-              type="checkbox"
-              checked={garantiVar}
-              onChange={(e) => setGarantiVar(e.target.checked)}
-            />
-            Bu işe garanti verildi
-          </label>
-          {garantiVar && (
-            <>
+      <form
+        className="kayit-formu kayit-genis"
+        onSubmit={gonder}
+        onChange={(e) => {
+          // The event bubbles up from whichever field was edited.
+          if (e.target instanceof HTMLInputElement && e.target.name) {
+            hatayiTemizle(e.target.name as Alan);
+          }
+        }}
+      >
+        <div className="form-izgara">
+          <section className="form-paneli">
+            <div className="panel-basligi">
+              <h2>Araç ve müşteri</h2>
+              {plakaOnizleme && <Plaka plaka={plakaOnizleme} />}
+            </div>
+            <label>
+              Plaka
+              <input
+                type="text"
+                name="plaka"
+                placeholder="34 ABC 123"
+                autoCapitalize="characters"
+                autoComplete="off"
+                value={plaka}
+                onChange={(e) => setPlaka(e.target.value)}
+              />
+              {hatalar.plaka && <span className="hata-metni">{hatalar.plaka}</span>}
+            </label>
+            <label>
+              Müşteri Adı
+              <input type="text" name="musteri" placeholder="Ahmet Yılmaz" autoComplete="off" />
+              {hatalar.musteri && <span className="hata-metni">{hatalar.musteri}</span>}
+            </label>
+            <label>
+              Telefon
+              <input
+                type="tel"
+                name="telefon"
+                inputMode="tel"
+                placeholder="532 111 22 33"
+                autoComplete="off"
+              />
+              <span className="alan-notu">Başına 0 yazmanıza gerek yok.</span>
+              {hatalar.telefon && <span className="hata-metni">{hatalar.telefon}</span>}
+            </label>
+          </section>
+
+          <section className="form-paneli">
+            <div className="panel-basligi">
+              <h2>Yapılan iş</h2>
+            </div>
+            <label>
+              Yapılan İş
+              <input type="text" name="yapilanIs" placeholder="Akü değişimi" autoComplete="off" />
+              {hatalar.yapilanIs && <span className="hata-metni">{hatalar.yapilanIs}</span>}
+            </label>
+            <label>
+              Ücret (TL)
+              <input
+                type="number"
+                name="ucret"
+                inputMode="numeric"
+                placeholder="1500"
+                min="0"
+                step="1"
+              />
+              {hatalar.ucret && <span className="hata-metni">{hatalar.ucret}</span>}
+            </label>
+            <div className="tarih-alani">
               <label>
-                Yapılan İşin Garanti Bitişi
-                <input type="date" name="garantiBitis" ref={garantiBitisRef} />
-                {hatalar.garantiBitis && (
-                  <span className="hata-metni">{hatalar.garantiBitis}</span>
+                Sonraki Bakım Tarihi
+                <input type="date" name="sonrakiBakim" ref={sonrakiBakimRef} />
+                {hatalar.sonrakiBakim && (
+                  <span className="hata-metni">{hatalar.sonrakiBakim}</span>
                 )}
               </label>
-              <HizliTarihButonlari hedef={garantiBitisRef} />
-            </>
-          )}
+              <HizliTarihButonlari
+                hedef={sonrakiBakimRef}
+                secildi={() => hatayiTemizle("sonrakiBakim")}
+              />
+            </div>
+            <div className="tarih-alani">
+              <label className="onay-satiri">
+                <input
+                  type="checkbox"
+                  checked={garantiVar}
+                  onChange={(e) => {
+                    setGarantiVar(e.target.checked);
+                    hatayiTemizle("garantiBitis");
+                  }}
+                />
+                Bu işe garanti verildi
+              </label>
+              {garantiVar && (
+                <>
+                  <label>
+                    Yapılan İşin Garanti Bitişi
+                    <input type="date" name="garantiBitis" ref={garantiBitisRef} />
+                    {hatalar.garantiBitis && (
+                      <span className="hata-metni">{hatalar.garantiBitis}</span>
+                    )}
+                  </label>
+                  <HizliTarihButonlari
+                    hedef={garantiBitisRef}
+                    secildi={() => hatayiTemizle("garantiBitis")}
+                  />
+                </>
+              )}
+            </div>
+          </section>
         </div>
-        <div className="tarih-alani">
-          <label>
-            Sonraki Bakım Tarihi
-            <input type="date" name="sonrakiBakim" ref={sonrakiBakimRef} />
-            {hatalar.sonrakiBakim && <span className="hata-metni">{hatalar.sonrakiBakim}</span>}
-          </label>
-          <HizliTarihButonlari hedef={sonrakiBakimRef} />
+
+        <div className="eylem-satiri">
+          <button className="buyuk-buton" type="submit">
+            Kaydet
+          </button>
+          <Link className="buyuk-buton ikincil-buton" href="/">
+            Vazgeç
+          </Link>
         </div>
-        <button className="buyuk-buton" type="submit">
-          Kaydet
-        </button>
-        {basarili && <span className="basari-metni">Kaydedildi, listeye yönlendiriliyorsunuz...</span>}
+        {basarili && (
+          <span className="basari-metni">Kaydedildi, listeye yönlendiriliyorsunuz...</span>
+        )}
         {sunucuHatasi && <span className="hata-metni">{sunucuHatasi}</span>}
       </form>
     </>
