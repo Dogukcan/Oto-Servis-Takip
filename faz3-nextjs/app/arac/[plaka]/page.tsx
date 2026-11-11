@@ -49,7 +49,7 @@ export default async function AracDetaySayfasi({
                 <td>{islem.tarih}</td>
                 <td>{islem.yapilanIs}</td>
                 <td>{islem.ucret.toLocaleString("tr-TR")} TL</td>
-                <td>{islem.garantiBitis}</td>
+                <td>{islem.garantiBitis === "" ? "Garanti yok" : islem.garantiBitis}</td>
                 <td>{islem.sonrakiBakim}</td>
               </tr>
             ))}

@@ -173,6 +173,25 @@ form.kayit-formu input {
   gap: 8px;
 }
 
+form.kayit-formu label.onay-satiri {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 2px solid var(--renk-kenar);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+form.kayit-formu label.onay-satiri input {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 .hizli-tarih {
   display: flex;
   gap: 12px;

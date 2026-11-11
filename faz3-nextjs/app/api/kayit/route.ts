@@ -52,7 +52,8 @@ export async function POST(istek: Request) {
   if (!Number.isFinite(ucret) || ucret < 0) {
     return NextResponse.json({ hata: "Geçerli bir ücret girin." }, { status: 400 });
   }
-  if (!tarihGecerliMi(garantiBitis)) {
+  // Warranty is optional: an empty value means the job has no warranty.
+  if (garantiBitis !== "" && !tarihGecerliMi(garantiBitis)) {
     return NextResponse.json({ hata: "Geçerli bir garanti bitiş tarihi girin." }, { status: 400 });
   }
   if (!tarihGecerliMi(sonrakiBakim)) {

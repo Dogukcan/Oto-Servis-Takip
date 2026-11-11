@@ -58,6 +58,7 @@ export default function KayitSayfasi() {
   const [hatalar, setHatalar] = useState<FormHatalari>({});
   const [basarili, setBasarili] = useState(false);
   const [sunucuHatasi, setSunucuHatasi] = useState<string | null>(null);
+  const [garantiVar, setGarantiVar] = useState(false);
 
   async function gonder(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,7 +69,7 @@ export default function KayitSayfasi() {
     const telefon = String(form.get("telefon") ?? "").trim();
     const yapilanIs = String(form.get("yapilanIs") ?? "").trim();
     const ucret = String(form.get("ucret") ?? "").trim();
-    const garantiBitis = String(form.get("garantiBitis") ?? "").trim();
+    const garantiBitis = garantiVar ? String(form.get("garantiBitis") ?? "").trim() : "";
     const sonrakiBakim = String(form.get("sonrakiBakim") ?? "").trim();
 
     const yeniHatalar: FormHatalari = {};
@@ -87,8 +88,8 @@ export default function KayitSayfasi() {
     if (ucret === "" || Number(ucret) < 0 || Number.isNaN(Number(ucret))) {
       yeniHatalar.ucret = "Geçerli bir ücret girin.";
     }
-    if (garantiBitis === "") {
-      yeniHatalar.garantiBitis = "Garanti bitiş tarihi boş olamaz.";
+    if (garantiVar && garantiBitis === "") {
+      yeniHatalar.garantiBitis = "Garanti bitiş tarihini girin ya da garanti kutusunun işaretini kaldırın.";
     }
     if (sonrakiBakim === "") {
       yeniHatalar.sonrakiBakim = "Sonraki bakım tarihi boş olamaz.";
@@ -124,6 +125,7 @@ export default function KayitSayfasi() {
 
     setBasarili(true);
     formElementi.reset();
+    setGarantiVar(false);
     setTimeout(() => router.push("/"), 800);
   }
 
@@ -157,12 +159,26 @@ export default function KayitSayfasi() {
           {hatalar.ucret && <span className="hata-metni">{hatalar.ucret}</span>}
         </label>
         <div className="tarih-alani">
-          <label>
-            Garanti Bitişi
-            <input type="date" name="garantiBitis" ref={garantiBitisRef} />
-            {hatalar.garantiBitis && <span className="hata-metni">{hatalar.garantiBitis}</span>}
+          <label className="onay-satiri">
+            <input
+              type="checkbox"
+              checked={garantiVar}
+              onChange={(e) => setGarantiVar(e.target.checked)}
+            />
+            Bu işe garanti verildi
           </label>
-          <HizliTarihButonlari hedef={garantiBitisRef} />
+          {garantiVar && (
+            <>
+              <label>
+                Yapılan İşin Garanti Bitişi
+                <input type="date" name="garantiBitis" ref={garantiBitisRef} />
+                {hatalar.garantiBitis && (
+                  <span className="hata-metni">{hatalar.garantiBitis}</span>
+                )}
+              </label>
+              <HizliTarihButonlari hedef={garantiBitisRef} />
+            </>
+          )}
         </div>
         <div className="tarih-alani">
           <label>

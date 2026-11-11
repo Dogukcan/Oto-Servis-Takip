@@ -2,7 +2,7 @@ export interface Islem {
   tarih: string; // ISO tarih, örn. "2026-08-12"
   yapilanIs: string;
   ucret: number;
-  garantiBitis: string; // ISO tarih
+  garantiBitis: string; // ISO tarih; işe garanti verilmediyse boş metin ("")
   sonrakiBakim: string; // ISO tarih
 }
 
