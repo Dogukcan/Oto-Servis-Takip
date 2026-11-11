@@ -17,3 +17,6 @@ yedek-durum.json
 node_modules/
 .next/
 *.tsbuildinfo
+
+# Design review output: screenshots, measurements and mockups
+.taste-skill/
