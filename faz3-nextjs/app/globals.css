@@ -11,7 +11,7 @@
   --yuzey: #ffffff;
   --aktif: #ebebe8;
   --cizgi: #e3e3df;
-  --kontrol: #b9b9b4;
+  --kontrol: #85857f; /* field edges: at least 3:1 on both the ground and the surface */
   --metin: #111111;
   --soluk: #5c5f63;
 
@@ -43,7 +43,7 @@
   --yuzey: #161616;
   --aktif: #242424;
   --cizgi: #262626;
-  --kontrol: #4a4a4a;
+  --kontrol: #707070;
   --metin: #ffffff;
   --soluk: #b4b4b4;
 
@@ -592,9 +592,11 @@ form.kayit-formu label.onay-satiri input {
 /*
   Tablet and phone: each vehicle becomes a three-line block.
   The plate and the status lead, the rest follows underneath.
+  The columns need the full 1280px page: any narrower and the customer and
+  job columns shrink below the width of a name.
 */
 
-@media (max-width: 1099px) {
+@media (max-width: 1279px) {
   :root {
     --kenar-boslugu: 20px;
   }

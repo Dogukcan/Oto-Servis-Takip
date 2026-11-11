@@ -13,7 +13,12 @@ export default async function AracDetaySayfasi({
   const arac = aracGetir(plaka);
 
   if (!arac) {
-    return <p>&quot;{plaka}&quot; plakalı araç bulunamadı.</p>;
+    return (
+      <>
+        <h1>Araç bulunamadı</h1>
+        <p>&quot;{plaka}&quot; plakalı araç kayıtlarda yok.</p>
+      </>
+    );
   }
 
   return (
