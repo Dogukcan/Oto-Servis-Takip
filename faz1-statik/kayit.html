@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yeni Kayıt</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="ust-bar">
+    <h1>Servis Takip</h1>
+    <nav class="menu">
+      <a href="index.html">Araç Listesi</a>
+      <a href="kayit.html">Yeni Kayıt</a>
+      <a href="arac.html">Araç Ara</a>
+      <a href="hatirlatma.html">Hatırlatmalar</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Yeni Kayıt</h2>
+    <form class="kayit-formu" action="#" method="post">
+      <label>
+        Plaka
+        <input type="text" name="plaka" placeholder="34 ABC 123" required />
+      </label>
+      <label>
+        Müşteri Adı
+        <input type="text" name="musteri" placeholder="Ahmet Yılmaz" required />
+      </label>
+      <label>
+        Telefon
+        <input type="tel" name="telefon" placeholder="532 111 22 33 (başına 0 eklemenize gerek yok)" required />
+      </label>
+      <label>
+        Yapılan İş
+        <input type="text" name="yapilanIs" placeholder="Akü değişimi" required />
+      </label>
+      <label>
+        Ücret (TL)
+        <input type="number" name="ucret" placeholder="1500" min="0" step="1" required />
+      </label>
+      <label>
+        Garanti Bitişi
+        <input type="date" name="garantiBitis" required />
+      </label>
+      <label>
+        Sonraki Bakım Tarihi
+        <input type="date" name="sonrakiBakim" required />
+      </label>
+      <button class="buyuk-buton" type="submit">Kaydet</button>
+    </form>
+  </main>
+</body>
+</html>

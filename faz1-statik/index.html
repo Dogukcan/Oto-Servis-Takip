@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Araç Listesi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="ust-bar">
+    <h1>Servis Takip</h1>
+    <nav class="menu">
+      <a href="index.html">Araç Listesi</a>
+      <a href="kayit.html">Yeni Kayıt</a>
+      <a href="arac.html">Araç Ara</a>
+      <a href="hatirlatma.html">Hatırlatmalar</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Araç Listesi</h2>
+    <a class="buyuk-buton" href="kayit.html">+ Yeni Kayıt</a>
+
+    <div class="tablo-sarici">
+      <table>
+        <thead>
+          <tr>
+            <th>Plaka</th>
+            <th>Müşteri</th>
+            <th>Telefon</th>
+            <th>Son İşlem</th>
+            <th>Sonraki Bakım</th>
+            <th>Durum</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>34 ABC 123</td>
+            <td>Ahmet Yılmaz</td>
+            <td>0532 111 22 33</td>
+            <td>Akü değişimi</td>
+            <td>12.11.2026</td>
+            <td><span class="durum durum-gecmis">Bakım Geçti</span></td>
+            <td>
+              <a class="buyuk-buton" href="arac.html">Detay</a>
+            </td>
+          </tr>
+          <tr>
+            <td>06 XYZ 456</td>
+            <td>Mehmet Kaya</td>
+            <td>0533 222 33 44</td>
+            <td>Alternatör tamiri</td>
+            <td>15.11.2026</td>
+            <td><span class="durum durum-yaklasiyor">Yaklaşıyor</span></td>
+            <td>
+              <a class="buyuk-buton" href="arac.html">Detay</a>
+            </td>
+          </tr>
+          <tr>
+            <td>35 DEF 789</td>
+            <td>Ayşe Demir</td>
+            <td>0534 333 44 55</td>
+            <td>Far sensörü</td>
+            <td>20.01.2027</td>
+            <td><span class="durum durum-uygun">Uygun</span></td>
+            <td>
+              <a class="buyuk-buton" href="arac.html">Detay</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
