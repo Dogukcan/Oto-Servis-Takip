@@ -23,18 +23,28 @@ export function telefonGecerliMi(girdi: string): boolean {
 }
 
 // Basitleştirilmiş TR plaka deseni: il kodu 01-81 (00 geçersiz), 1-3 harf (Q, W, X hariç), 2-4 rakam.
-const PLAKA_DESENI = /^(0[1-9]|[1-7][0-9]|8[01])\s?[ABCDEFGHIJKLMNOPRSTUVYZ]{1,3}\s?[0-9]{2,4}$/i;
+const PLAKA_PARCALARI =
+  /^(0[1-9]|[1-7][0-9]|8[01])([ABCDEFGHIJKLMNOPRSTUVYZ]{1,3})([0-9]{2,4})$/;
+
+// Plakayı tek biçime çevirir: "34abc123", "34 ABC123" ve "34 ABC 123" hepsi
+// "34 ABC 123" olur. Aynı aracın boşluk farkıyla iki ayrı kayıt olmasını bu
+// engeller. Geçerli bir plaka değilse null döner.
+export function plakaBicimle(plaka: string): string | null {
+  const esleme = PLAKA_PARCALARI.exec(plaka.toUpperCase().replace(/\s+/g, ""));
+  if (!esleme) return null;
+  return `${esleme[1]} ${esleme[2]} ${esleme[3]}`;
+}
 
 export function dogrulaPlaka(plaka: string): boolean {
-  return PLAKA_DESENI.test(plaka.trim());
+  return plakaBicimle(plaka) !== null;
 }
 
 export function formatPlaka(plaka: string): string {
-  const temiz = plaka.trim().toUpperCase().replace(/\s+/g, " ");
-  if (!dogrulaPlaka(temiz)) {
+  const bicimli = plakaBicimle(plaka);
+  if (bicimli === null) {
     throw new Error(`Geçersiz plaka: ${plaka}`);
   }
-  return temiz;
+  return bicimli;
 }
 
 export function plakaAnahtari(plaka: string): string {

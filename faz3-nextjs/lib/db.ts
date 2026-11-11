@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "node:path";
 import { sahteAraclar } from "./sahte-veri";
+import { plakaBicimle } from "./format";
 
 const DB_YOLU = path.join(process.cwd(), "servis.db");
 
@@ -61,3 +62,36 @@ if (aracSayisi === 0) {
   });
   tohumla();
 }
+
+// Eski kayıtlarda plaka yazıldığı gibi saklanıyordu ("34 FGH523"). Bu adım
+// onları "34 FGH 523" biçimine çevirir ve işlem geçmişini yeni plakaya taşır.
+// Aynı aracın boşluk farkıyla iki kaydı varsa tek kayıtta birleşir; müşteri
+// bilgisi olarak doğru biçimli kayıttaki korunur. Her açılışta çalışır ama
+// düzeltilecek kayıt kalmadığında hiçbir şey yapmaz. Plaka kuralına uymayan
+// eski kayıtlara dokunmaz.
+const plakalariTekBicimeGetir = db.transaction(() => {
+  const araclar = db
+    .prepare("SELECT plaka, musteri, telefon FROM araclar")
+    .all() as { plaka: string; musteri: string; telefon: string }[];
+
+  for (const arac of araclar) {
+    const dogruPlaka = plakaBicimle(arac.plaka);
+    if (dogruPlaka === null || dogruPlaka === arac.plaka) continue;
+
+    const hedefVar = db
+      .prepare("SELECT plaka FROM araclar WHERE plaka = ?")
+      .get(dogruPlaka);
+    if (!hedefVar) {
+      db.prepare(
+        "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
+      ).run(dogruPlaka, arac.musteri, arac.telefon);
+    }
+    db.prepare("UPDATE islemler SET plaka = ? WHERE plaka = ?").run(
+      dogruPlaka,
+      arac.plaka
+    );
+    db.prepare("DELETE FROM araclar WHERE plaka = ?").run(arac.plaka);
+  }
+});
+
+plakalariTekBicimeGetir();
