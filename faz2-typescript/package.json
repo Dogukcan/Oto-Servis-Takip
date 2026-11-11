@@ -1,0 +1,9 @@
+{
+  "name": "faz2-typescript",
+  "private": true,
+  "type": "module",
+  "description": "Faz 2: TypeScript mantik katmani, sahte veriyle test.",
+  "scripts": {
+    "test": "node test.ts"
+  }
+}
