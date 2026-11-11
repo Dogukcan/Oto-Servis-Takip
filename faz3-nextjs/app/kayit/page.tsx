@@ -131,7 +131,7 @@ export default function KayitSayfasi() {
 
   return (
     <>
-      <h2>Yeni Kayıt</h2>
+      <h1>Yeni Kayıt</h1>
       <form className="kayit-formu" onSubmit={gonder}>
         <label>
           Plaka

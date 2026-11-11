@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
+import { Barlow } from "next/font/google";
 import { UstBar } from "@/components/UstBar";
+import { TEMA_BASLANGIC_BETIGI } from "@/lib/tema";
 import "./globals.css";
+
+const barlow = Barlow({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "latin-ext"],
+  variable: "--yazi-tipi",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Servis Takip",
@@ -13,7 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
+    // The theme script sets data-tema before React loads, so the attribute on
+    // <html> differs from the server markup on purpose.
+    <html lang="tr" className={barlow.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: TEMA_BASLANGIC_BETIGI }} />
+      </head>
       <body>
         <UstBar />
         <main>{children}</main>

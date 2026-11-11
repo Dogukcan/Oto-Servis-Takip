@@ -15,7 +15,7 @@ export default function HatirlatmaSayfasi() {
 
   return (
     <>
-      <h2>Hatırlatmalar</h2>
+      <h1>Hatırlatmalar</h1>
 
       {hatirlatilacaklar.length === 0 ? (
         <p>Şu an hatırlatma gereken araç yok.</p>

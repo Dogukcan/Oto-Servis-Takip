@@ -18,9 +18,9 @@ export default async function AracDetaySayfasi({
 
   return (
     <>
-      <h2>
+      <h1>
         {arac.plaka} — {arac.musteri}
-      </h2>
+      </h1>
       <p>Telefon: {arac.telefon}</p>
       <a
         className="buyuk-buton buton-whatsapp"

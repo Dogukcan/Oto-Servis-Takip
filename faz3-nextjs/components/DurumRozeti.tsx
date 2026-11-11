@@ -1,7 +1,7 @@
 import type { BakimDurumu } from "@/lib/bakim-durumu";
 
 const ETIKETLER: Record<BakimDurumu, string> = {
-  gecmis: "Bakım Geçti",
+  gecmis: "Bakım geçti",
   yaklasiyor: "Yaklaşıyor",
   uygun: "Uygun",
 };

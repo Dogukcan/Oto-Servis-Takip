@@ -8,7 +8,7 @@ export default function AracAraSayfasi() {
 
   return (
     <>
-      <h2>Araç Ara</h2>
+      <h1>Araç Ara</h1>
       <AramaSonuclari araclar={araclar} />
     </>
   );
