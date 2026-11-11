@@ -3,7 +3,7 @@ import type { BakimDurumu } from "@/lib/bakim-durumu";
 const ETIKETLER: Record<BakimDurumu, string> = {
   gecmis: "Bakım geçti",
   yaklasiyor: "Yaklaşıyor",
-  uygun: "Uygun",
+  uygun: "Zamanı var",
 };
 
 const SINIFLAR: Record<BakimDurumu, string> = {
