@@ -1,0 +1,9 @@
+node_modules/
+.next/
+servis.db
+servis.db-journal
+servis.db-wal
+servis.db-shm
+yedek-durum.json
+.env*
+!.env.example
