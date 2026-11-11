@@ -277,6 +277,27 @@ h2 {
   color: var(--whatsapp-ustu);
 }
 
+.ikincil-buton {
+  border: 1.5px solid var(--kontrol);
+  background: var(--yuzey);
+  color: var(--metin);
+}
+
+.ikincil-buton:hover {
+  background: var(--aktif);
+  opacity: 1;
+}
+
+.eylem-satiri {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.form-aciklamasi {
+  margin: -12px 0 24px;
+}
+
 /* Plate: always a white face, as on the car */
 
 .plaka {

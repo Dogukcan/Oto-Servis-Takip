@@ -79,6 +79,53 @@ export function aracGetir(plaka: string): Arac | undefined {
   };
 }
 
+export type AracGuncellemeSonucu = "tamam" | "bulunamadi" | "plaka-kullanimda";
+
+// Müşteri adını, telefonu ve gerekirse plakayı değiştirir. Plaka değişirse
+// aracın bütün işlem geçmişi yeni plakaya taşınır. Hepsi tek transaction
+// içinde yapılır; bir adım başarısız olursa hiçbir şey değişmez.
+export function aracGuncelle(
+  eskiPlaka: string,
+  yeniPlaka: string,
+  musteri: string,
+  telefon: string
+): AracGuncellemeSonucu {
+  const guncelle = db.transaction((): AracGuncellemeSonucu => {
+    const mevcut = db
+      .prepare("SELECT plaka FROM araclar WHERE plaka = ?")
+      .get(eskiPlaka);
+    if (!mevcut) return "bulunamadi";
+
+    if (yeniPlaka === eskiPlaka) {
+      db.prepare(
+        "UPDATE araclar SET musteri = ?, telefon = ? WHERE plaka = ?"
+      ).run(musteri, telefon, eskiPlaka);
+      return "tamam";
+    }
+
+    const cakisan = db
+      .prepare("SELECT plaka FROM araclar WHERE plaka = ?")
+      .get(yeniPlaka);
+    if (cakisan) return "plaka-kullanimda";
+
+    // Yeni satır önce eklenir, işlemler ona bağlanır, eski satır en son silinir.
+    // Böylece işlemler hiçbir anda var olmayan bir plakayı göstermez.
+    db.prepare(
+      "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
+    ).run(yeniPlaka, musteri, telefon);
+    db.prepare("UPDATE islemler SET plaka = ? WHERE plaka = ?").run(
+      yeniPlaka,
+      eskiPlaka
+    );
+    db.prepare("DELETE FROM araclar WHERE plaka = ?").run(eskiPlaka);
+    return "tamam";
+  });
+
+  const sonuc = guncelle();
+  if (sonuc === "tamam") otomatikYedekAl();
+  return sonuc;
+}
+
 export function islemEkle(
   plaka: string,
   musteri: string,

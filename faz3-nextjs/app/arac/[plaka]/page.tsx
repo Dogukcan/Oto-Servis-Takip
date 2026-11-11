@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { aracGetir } from "@/lib/db-sorgular";
 import { whatsappLinkOlustur } from "@/lib/whatsapp";
 
@@ -27,14 +28,22 @@ export default async function AracDetaySayfasi({
         {arac.plaka} — {arac.musteri}
       </h1>
       <p>Telefon: {arac.telefon}</p>
-      <a
-        className="buyuk-buton buton-whatsapp"
-        href={whatsappLinkOlustur(arac)}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        WhatsApp&apos;tan Bilgi Ver
-      </a>
+      <div className="eylem-satiri">
+        <a
+          className="buyuk-buton buton-whatsapp"
+          href={whatsappLinkOlustur(arac)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp&apos;tan Bilgi Ver
+        </a>
+        <Link
+          className="buyuk-buton ikincil-buton"
+          href={`/arac/${encodeURIComponent(arac.plaka)}/duzenle`}
+        >
+          Bilgileri Düzenle
+        </Link>
+      </div>
 
       <h2>İşlem Geçmişi</h2>
       <div className="tablo-sarici">
