@@ -1,0 +1,6 @@
+{
+  "name": "servis-otomasyon-ai",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind"
+}
