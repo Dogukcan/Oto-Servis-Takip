@@ -18,17 +18,29 @@ interface GuncellemeGovdesi {
 }
 
 export async function PUT(istek: Request) {
-  const govde = (await istek.json()) as GuncellemeGovdesi;
+  let govde: GuncellemeGovdesi;
+  try {
+    const ham: unknown = await istek.json();
+    if (typeof ham !== "object" || ham === null) throw new Error("not an object");
+    govde = ham as GuncellemeGovdesi;
+  } catch {
+    return NextResponse.json({ hata: "İstek okunamadı." }, { status: 400 });
+  }
 
   const eskiPlaka = String(govde.eskiPlaka ?? "").trim();
   const plaka = String(govde.plaka ?? "").trim();
   const musteri = String(govde.musteri ?? "").trim();
   const telefon = String(govde.telefon ?? "").trim();
 
+  // An untouched plate is not re-validated or re-checked for clashes. Older
+  // records may hold a plate the current rules reject, and their name and
+  // phone must still be editable.
+  const plakaDegisti = plaka !== eskiPlaka;
+
   if (eskiPlaka === "") {
     return NextResponse.json({ hata: "Düzenlenecek araç belirtilmedi." }, { status: 400 });
   }
-  if (!dogrulaPlaka(plaka)) {
+  if (plakaDegisti && !dogrulaPlaka(plaka)) {
     return NextResponse.json({ hata: "Geçerli bir plaka girin." }, { status: 400 });
   }
   if (musteri === "" || musteri.length > MAKS_METIN_UZUNLUGU) {
@@ -41,15 +53,17 @@ export async function PUT(istek: Request) {
     return NextResponse.json({ hata: "Geçerli bir telefon numarası girin." }, { status: 400 });
   }
 
-  const yeniPlaka = formatPlaka(plaka);
+  const yeniPlaka = plakaDegisti ? formatPlaka(plaka) : eskiPlaka;
 
   // "34 ABC 123" and "34ABC123" are the same car. The database compares text
   // exactly, so the clash is checked here on the space-free form as well.
-  const ayniPlakaliBaskaArac = tumAraclariGetir().some(
-    (arac) =>
-      arac.plaka !== eskiPlaka &&
-      plakaAnahtari(arac.plaka) === plakaAnahtari(yeniPlaka)
-  );
+  const ayniPlakaliBaskaArac =
+    yeniPlaka !== eskiPlaka &&
+    tumAraclariGetir().some(
+      (arac) =>
+        arac.plaka !== eskiPlaka &&
+        plakaAnahtari(arac.plaka) === plakaAnahtari(yeniPlaka)
+    );
   if (ayniPlakaliBaskaArac) {
     return NextResponse.json(
       { hata: "Bu plaka başka bir araçta kayıtlı." },

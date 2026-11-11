@@ -33,7 +33,8 @@ export function AracDuzenleFormu({ plaka, musteri, telefon }: Props) {
     const yeniTelefon = String(form.get("telefon") ?? "").trim();
 
     const yeniHatalar: FormHatalari = {};
-    if (!dogrulaPlaka(yeniPlaka)) {
+    // An untouched plate is accepted as it is, even if today's rules would reject it.
+    if (yeniPlaka !== plaka && !dogrulaPlaka(yeniPlaka)) {
       yeniHatalar.plaka = "Geçerli bir plaka girin (örn. 34 ABC 123).";
     }
     if (yeniMusteri === "") {
@@ -59,7 +60,11 @@ export function AracDuzenleFormu({ plaka, musteri, telefon }: Props) {
           telefon: yeniTelefon,
         }),
       });
-      const govde = (await yanit.json()) as { hata?: string; plaka?: string };
+      // A server error may come back without a JSON body.
+      const govde = (await yanit.json().catch(() => ({}))) as {
+        hata?: string;
+        plaka?: string;
+      };
 
       if (!yanit.ok || !govde.plaka) {
         setSunucuHatasi(govde.hata ?? "Kayıt sırasında bir hata oluştu.");
