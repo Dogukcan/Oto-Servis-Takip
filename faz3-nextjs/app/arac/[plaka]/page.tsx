@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { aracGetir } from "@/lib/db-sorgular";
+import {
+  bakimaKalanGun,
+  hesaplaBakimDurumu,
+  kalanGunMetni,
+  sonSonrakiBakimTarihi,
+} from "@/lib/bakim-durumu";
+import { tarihTR } from "@/lib/format";
 import { whatsappLinkOlustur } from "@/lib/whatsapp";
+import { DurumRozeti } from "@/components/DurumRozeti";
+import { Plaka } from "@/components/Plaka";
 
 export const dynamic = "force-dynamic";
 
@@ -17,17 +26,56 @@ export default async function AracDetaySayfasi({
     return (
       <>
         <h1>Araç bulunamadı</h1>
-        <p>&quot;{plaka}&quot; plakalı araç kayıtlarda yok.</p>
+        <p className="bos-durum">
+          &quot;{plaka}&quot; plakalı araç kayıtlarda yok.
+        </p>
+        <div className="eylem-satiri eylem-ust-bosluk">
+          <Link className="buyuk-buton ikincil-buton" href="/">
+            Araç Listesine Dön
+          </Link>
+        </div>
       </>
     );
   }
 
+  const buAn = new Date();
+  const sonrakiBakim = sonSonrakiBakimTarihi(arac);
+  // Newest job first: that is the one the mechanic is asked about.
+  const islemler = [...arac.islemler].reverse();
+
   return (
     <>
-      <h1>
-        {arac.plaka} — {arac.musteri}
-      </h1>
-      <p>Telefon: {arac.telefon}</p>
+      <div className="arac-basligi">
+        <Plaka plaka={arac.plaka} />
+        <div>
+          <h1>{arac.musteri}</h1>
+          <p className="baslik-alti">{arac.telefon}</p>
+        </div>
+      </div>
+
+      <div className="bakim-ozeti">
+        <div className="bakim-ozeti-metin">
+          <span className="ozet-etiketi">Sonraki bakım</span>
+          {sonrakiBakim === null ? (
+            <span className="ozet-degeri">Kayıt yok</span>
+          ) : (
+            <>
+              <span className="ozet-degeri">{tarihTR(sonrakiBakim)}</span>
+              <span className="bakim-kalan">
+                {kalanGunMetni(bakimaKalanGun(sonrakiBakim, buAn))}
+              </span>
+            </>
+          )}
+        </div>
+        <DurumRozeti
+          durum={
+            sonrakiBakim === null
+              ? null
+              : hesaplaBakimDurumu(sonrakiBakim, buAn)
+          }
+        />
+      </div>
+
       <div className="eylem-satiri">
         <a
           className="buyuk-buton buton-whatsapp"
@@ -46,30 +94,40 @@ export default async function AracDetaySayfasi({
       </div>
 
       <h2>İşlem Geçmişi</h2>
-      <div className="tablo-sarici">
-        <table>
-          <thead>
-            <tr>
-              <th>Tarih</th>
-              <th>Yapılan İş</th>
-              <th>Ücret</th>
-              <th>Garanti Bitişi</th>
-              <th>Sonraki Bakım</th>
-            </tr>
-          </thead>
-          <tbody>
-            {arac.islemler.map((islem, i) => (
-              <tr key={i}>
-                <td>{islem.tarih}</td>
-                <td>{islem.yapilanIs}</td>
-                <td>{islem.ucret.toLocaleString("tr-TR")} TL</td>
-                <td>{islem.garantiBitis === "" ? "Garanti yok" : islem.garantiBitis}</td>
-                <td>{islem.sonrakiBakim}</td>
-              </tr>
+      {islemler.length === 0 ? (
+        <p className="bos-durum">Bu araca henüz iş kaydedilmedi.</p>
+      ) : (
+        <div className="islem-listesi">
+          <div className="islem-listesi-basligi" aria-hidden="true">
+            <span>Tarih</span>
+            <span>Yapılan iş</span>
+            <span>Ücret</span>
+            <span>Garanti bitişi</span>
+            <span>Sonraki bakım</span>
+          </div>
+          <ul>
+            {islemler.map((islem, i) => (
+              <li key={i} className="islem-satiri">
+                <span className="islem-tarih">{tarihTR(islem.tarih)}</span>
+                <span className="islem-is">{islem.yapilanIs}</span>
+                <span className="islem-ucret">
+                  {islem.ucret.toLocaleString("tr-TR")} TL
+                </span>
+                <span className="islem-garanti">
+                  <span className="islem-alan-adi">Garanti: </span>
+                  {islem.garantiBitis === ""
+                    ? "Yok"
+                    : tarihTR(islem.garantiBitis)}
+                </span>
+                <span className="islem-bakim">
+                  <span className="islem-alan-adi">Sonraki bakım: </span>
+                  {tarihTR(islem.sonrakiBakim)}
+                </span>
+              </li>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </ul>
+        </div>
+      )}
     </>
   );
 }

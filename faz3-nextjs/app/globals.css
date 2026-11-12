@@ -442,43 +442,115 @@ h2 {
   stroke-linejoin: round;
 }
 
-/* Plain tables (job history, search results) */
+/* Vehicle detail: the plate and the owner lead, then when the next service is due */
 
-.tablo-sarici {
-  overflow-x: auto;
+.arac-basligi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  margin-bottom: 24px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.arac-basligi h1 {
+  margin: 0;
 }
 
-th,
-td {
-  padding: 16px 12px;
-  text-align: left;
+.arac-basligi .plaka {
+  height: 60px;
 }
 
-th {
-  padding-top: 0;
-  padding-bottom: 10px;
+.arac-basligi .plaka-tr {
+  width: 30px;
+  font-size: 13px;
+}
+
+.arac-basligi .plaka-metin {
+  padding: 0 16px 0 14px;
+  font-size: 37px;
+}
+
+.bakim-ozeti {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 20px;
+  padding: 18px 24px;
+  border: 1px solid var(--cizgi);
+  border-radius: 12px;
+  background: var(--yuzey);
+}
+
+.bakim-ozeti-metin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+
+.ozet-etiketi {
+  color: var(--soluk);
+}
+
+.ozet-degeri {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.eylem-ust-bosluk {
+  margin-top: 20px;
+}
+
+/*
+  Job history. Five columns on a wide screen:
+  date 130 + fee 130 + warranty 150 + next service 150 = 560 fixed,
+  four 20px gaps = 80, and the job column takes the rest.
+*/
+
+.islem-listesi ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.islem-listesi-basligi,
+.islem-satiri {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 130px 150px 150px;
+  align-items: center;
+  column-gap: 20px;
+}
+
+.islem-listesi-basligi {
+  padding: 0 0 10px;
   color: var(--soluk);
   font-size: 16px;
-  font-weight: 400;
 }
 
-td {
+.islem-satiri {
+  min-height: 64px;
+  padding: 14px 0;
   border-top: 1px solid var(--cizgi);
 }
 
-th:first-child,
-td:first-child {
-  padding-left: 0;
+.islem-satiri:last-child {
+  border-bottom: 1px solid var(--cizgi);
 }
 
-th:last-child,
-td:last-child {
-  padding-right: 0;
+.islem-is {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.islem-ucret {
+  white-space: nowrap;
+}
+
+/* The field names are only needed once the column header is gone. */
+.islem-alan-adi {
+  display: none;
 }
 
 /* Forms */
@@ -646,23 +718,55 @@ form.kayit-formu label.onay-satiri input {
   min-width: 220px;
 }
 
-/* Reminders */
+/*
+  Reminders. The left part of a row opens the vehicle, the button on the
+  right opens WhatsApp. Columns: plate 230 + date 150 + status 150 = 530 fixed,
+  and the customer takes the rest.
+*/
 
-.hatirlatma-karti {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-  padding: 18px 20px;
-  border: 1px solid var(--cizgi);
-  border-radius: 12px;
-  background: var(--yuzey);
+.hatirlatma-listesi {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.hatirlatma-bilgi p {
-  margin: 4px 0;
+.hatirlatma-satiri {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--cizgi);
+}
+
+.hatirlatma-satiri:last-child {
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.hatirlatma-bilgi {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 230px minmax(0, 1fr) 150px 150px;
+  align-items: center;
+  column-gap: 20px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 14px 0;
+  color: var(--metin);
+  text-decoration: none;
+}
+
+.hatirlatma-bilgi:hover {
+  background: var(--aktif);
+}
+
+.hatirlatma-musteri {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.hatirlatma-satiri .buyuk-buton {
+  flex-shrink: 0;
 }
 
 /*
@@ -727,6 +831,79 @@ form.kayit-formu label.onay-satiri input {
   .satir-oku {
     grid-area: ok;
   }
+
+  .hatirlatma-bilgi {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "plaka   durum"
+      "musteri bakim";
+    gap: 10px 16px;
+    padding: 16px 0 14px;
+  }
+
+  .hatirlatma-musteri {
+    grid-area: musteri;
+  }
+
+  .hatirlatma-bilgi .hucre-bakim {
+    flex-direction: column;
+    gap: 0;
+    align-items: flex-end;
+  }
+}
+
+/* Below this the WhatsApp button no longer fits beside the vehicle. */
+@media (max-width: 759px) {
+  .hatirlatma-satiri {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-bottom: 16px;
+  }
+}
+
+@media (max-width: 899px) {
+  .islem-listesi-basligi {
+    display: none;
+  }
+
+  .islem-satiri {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "is      ucret"
+      "tarih   tarih"
+      "garanti garanti"
+      "bakim   bakim";
+    gap: 4px 16px;
+    padding: 16px 0;
+  }
+
+  .islem-is {
+    grid-area: is;
+  }
+
+  .islem-ucret {
+    grid-area: ucret;
+    font-weight: 600;
+  }
+
+  .islem-tarih {
+    grid-area: tarih;
+    color: var(--soluk);
+  }
+
+  .islem-garanti {
+    grid-area: garanti;
+  }
+
+  .islem-bakim {
+    grid-area: bakim;
+  }
+
+  .islem-alan-adi {
+    display: inline;
+    color: var(--soluk);
+  }
 }
 
 @media (max-width: 479px) {
@@ -755,10 +932,28 @@ form.kayit-formu label.onay-satiri input {
   .bakim-kalan {
     font-size: 15px;
   }
+
+  .arac-basligi .plaka {
+    height: 50px;
+  }
+
+  .arac-basligi .plaka-metin {
+    padding: 0 12px 0 10px;
+    font-size: 30px;
+  }
+
+  .bakim-ozeti {
+    padding: 16px 18px;
+  }
+
+  .eylem-satiri .buyuk-buton {
+    flex: 1 1 100%;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .arac-satiri,
+  .hatirlatma-bilgi,
   .buyuk-buton,
   .hizli-tarih-butonu,
   .tema-dugmesi,
