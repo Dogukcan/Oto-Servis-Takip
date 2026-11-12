@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { Arac } from "@/lib/types";
 import { aracAra } from "@/lib/arama";
-import { aracBakimDurumu } from "@/lib/bakim-durumu";
-import { DurumRozeti } from "./DurumRozeti";
+import { AracListesi } from "./AracListesi";
 
 export function AramaSonuclari({ araclar }: { araclar: Arac[] }) {
   const [sorgu, setSorgu] = useState("");
@@ -16,7 +14,10 @@ export function AramaSonuclari({ araclar }: { araclar: Arac[] }) {
       <div className="arama-kutusu">
         <input
           type="text"
+          aria-label="Plaka ile ara"
           placeholder="Plaka yazın (örn. 34 ABC 123)"
+          autoCapitalize="characters"
+          autoComplete="off"
           value={sorgu}
           onChange={(e) => setSorgu(e.target.value)}
           autoFocus
@@ -24,39 +25,13 @@ export function AramaSonuclari({ araclar }: { araclar: Arac[] }) {
       </div>
 
       {sonuclar.length === 0 ? (
-        <p>Eşleşen araç bulunamadı.</p>
+        <p className="bos-durum">
+          {araclar.length === 0
+            ? "Henüz kayıtlı araç yok."
+            : "Bu plakayla eşleşen araç yok. Yazdığınız plakayı kontrol edin."}
+        </p>
       ) : (
-        <div className="tablo-sarici">
-          <table>
-            <thead>
-              <tr>
-                <th>Plaka</th>
-                <th>Müşteri</th>
-                <th>Durum</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {sonuclar.map((arac) => (
-                <tr key={arac.plaka}>
-                  <td>{arac.plaka}</td>
-                  <td>{arac.musteri}</td>
-                  <td>
-                    <DurumRozeti durum={aracBakimDurumu(arac)} />
-                  </td>
-                  <td>
-                    <Link
-                      className="buyuk-buton"
-                      href={`/arac/${encodeURIComponent(arac.plaka)}`}
-                    >
-                      Detay
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AracListesi araclar={sonuclar} />
       )}
     </>
   );
