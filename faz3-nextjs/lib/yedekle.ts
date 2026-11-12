@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { dbCheckpointEt } from "./db";
-
-const DB_YOLU = path.join(process.cwd(), "servis.db");
-const YEDEK_DURUM_YOLU = path.join(process.cwd(), "yedek-durum.json");
+import { DB_YOLU, YEDEK_DURUM_YOLU } from "./dosya-yollari";
 
 export function dbDosyaYolu(): string {
   return DB_YOLU;

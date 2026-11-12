@@ -1,10 +1,10 @@
 import Database from "better-sqlite3";
-import path from "node:path";
+import { DB_YOLU } from "./dosya-yollari";
 import { sahteAraclar } from "./sahte-veri";
 import { plakaBicimle } from "./format";
 
-const DB_YOLU = path.join(process.cwd(), "servis.db");
-
+// The path comes from lib/dosya-yollari.ts (servis.db in the working directory
+// unless a test overrides it).
 export const db = new Database(DB_YOLU);
 db.pragma("journal_mode = WAL");
 

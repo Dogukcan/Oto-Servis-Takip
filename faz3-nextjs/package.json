@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
     "build": "next build",
-    "start": "next start -H 127.0.0.1"
+    "start": "next start -H 127.0.0.1",
+    "test": "node --import ./tests/kurulum.mjs --test \"tests/*.test.mjs\""
   },
   "keywords": [],
   "author": "",
