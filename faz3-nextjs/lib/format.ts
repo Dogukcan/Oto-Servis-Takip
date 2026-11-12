@@ -56,6 +56,16 @@ export function plakaAnahtari(plaka: string): string {
   return plaka.toUpperCase().replace(/\s+/g, "");
 }
 
+// Returns the local calendar day of `an` as "YYYY-MM-DD". Unlike
+// toISOString().slice(0, 10), which gives the UTC day, this uses the local
+// year/month/day, so a job entered at 01:30 in Turkey (UTC+3) gets today's date.
+export function yerelTarihISO(an: Date = new Date()): string {
+  const yil = String(an.getFullYear()).padStart(4, "0");
+  const ay = String(an.getMonth() + 1).padStart(2, "0");
+  const gun = String(an.getDate()).padStart(2, "0");
+  return `${yil}-${ay}-${gun}`;
+}
+
 // "2026-10-01" -> "01.10.2026". Ekranda gösterim içindir; veritabanında tarih ISO kalır.
 export function tarihTR(isoTarih: string): string {
   const [yil, ay, gun] = isoTarih.split("-");

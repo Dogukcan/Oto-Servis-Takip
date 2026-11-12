@@ -5,6 +5,7 @@ import {
   formatTelefon,
   telefonGecerliMi,
   tarihGecerliMi,
+  yerelTarihISO,
 } from "@/lib/format";
 import { islemEkle } from "@/lib/db-sorgular";
 
@@ -70,7 +71,7 @@ export async function POST(istek: Request) {
   }
 
   islemEkle(formatPlaka(plaka), musteri, formatTelefon(telefon), {
-    tarih: new Date().toISOString().slice(0, 10),
+    tarih: yerelTarihISO(),
     yapilanIs,
     ucret,
     garantiBitis,
