@@ -21,7 +21,16 @@ interface KayitGovdesi {
 }
 
 export async function POST(istek: Request) {
-  const govde = (await istek.json()) as KayitGovdesi;
+  // A malformed or non-object body is a client error, not a server error.
+  // The raw body is deliberately not logged.
+  let govde: KayitGovdesi;
+  try {
+    const ham: unknown = await istek.json();
+    if (typeof ham !== "object" || ham === null) throw new Error("not an object");
+    govde = ham as KayitGovdesi;
+  } catch {
+    return NextResponse.json({ hata: "İstek okunamadı." }, { status: 400 });
+  }
 
   const plaka = String(govde.plaka ?? "").trim();
   const musteri = String(govde.musteri ?? "").trim();
