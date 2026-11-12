@@ -2,7 +2,12 @@
 // with Request objects (no server). Uses a fresh database in an OS temp
 // directory (see tests/kurulum.mjs); the guard aborts before the database is
 // opened if that is not the case.
-import { test, after } from "node:test";
+
+// Pin the time zone before any Date is created so the local-day test for
+// POST /api/kayit always runs in Europe/Istanbul (UTC+3).
+process.env.TZ = "Europe/Istanbul";
+
+import { test, after, mock } from "node:test";
 import assert from "node:assert/strict";
 import { guvenliYollariDogrula } from "./guvenlik.mjs";
 
@@ -158,6 +163,23 @@ test("POST /api/kayit: empty warranty is accepted and stored as empty text", asy
   const satirlar = islemleri("17 GR 100");
   assert.equal(satirlar.length, 1);
   assert.equal(satirlar[0].garantiBitis, "");
+});
+
+test("POST /api/kayit: stores local Istanbul date, not UTC date, after midnight", async () => {
+  // 2026-11-11T22:30:00Z is 01:30 on 2026-11-12 in Europe/Istanbul (UTC+3);
+  // the old UTC code (toISOString().slice(0, 10)) would store "2026-11-11".
+  mock.timers.enable({ apis: ["Date"], now: new Date("2026-11-11T22:30:00Z") });
+  try {
+    const { durum } = await cevapOku(
+      await POST(istek("POST", gecerliKayit({ plaka: "20 TR 300" })))
+    );
+    assert.equal(durum, 200);
+    const satirlar = islemleri("20 TR 300");
+    assert.equal(satirlar.length, 1);
+    assert.equal(satirlar[0].tarih, "2026-11-12");
+  } finally {
+    mock.timers.reset();
+  }
 });
 
 // e) PUT /api/arac
