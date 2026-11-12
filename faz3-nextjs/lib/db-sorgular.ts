@@ -132,31 +132,37 @@ export function islemEkle(
   telefon: string,
   islem: Islem
 ): void {
-  const mevcut = db
-    .prepare("SELECT plaka FROM araclar WHERE plaka = ?")
-    .get(plaka);
+  // The vehicle upsert and the job insert run in a single transaction, so a
+  // failure on the job insert rolls back the vehicle change as well.
+  const ekle = db.transaction((): void => {
+    const mevcut = db
+      .prepare("SELECT plaka FROM araclar WHERE plaka = ?")
+      .get(plaka);
 
-  if (!mevcut) {
+    if (!mevcut) {
+      db.prepare(
+        "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
+      ).run(plaka, musteri, telefon);
+    } else {
+      db.prepare(
+        "UPDATE araclar SET musteri = ?, telefon = ? WHERE plaka = ?"
+      ).run(musteri, telefon, plaka);
+    }
+
     db.prepare(
-      "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
-    ).run(plaka, musteri, telefon);
-  } else {
-    db.prepare(
-      "UPDATE araclar SET musteri = ?, telefon = ? WHERE plaka = ?"
-    ).run(musteri, telefon, plaka);
-  }
+      `INSERT INTO islemler (plaka, tarih, yapilanIs, ucret, garantiBitis, sonrakiBakim)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).run(
+      plaka,
+      islem.tarih,
+      islem.yapilanIs,
+      islem.ucret,
+      islem.garantiBitis,
+      islem.sonrakiBakim
+    );
+  });
 
-  db.prepare(
-    `INSERT INTO islemler (plaka, tarih, yapilanIs, ucret, garantiBitis, sonrakiBakim)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(
-    plaka,
-    islem.tarih,
-    islem.yapilanIs,
-    islem.ucret,
-    islem.garantiBitis,
-    islem.sonrakiBakim
-  );
-
+  ekle();
+  // Backup only after the transaction has committed; if it threw, we never get here.
   otomatikYedekAl();
 }
