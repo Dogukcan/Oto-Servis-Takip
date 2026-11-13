@@ -1,0 +1,35 @@
+#!/bin/sh
+# Scans staged changes for secrets with gitleaks before every commit.
+# Enabled per clone with: git config core.hooksPath .githooks
+
+GITLEAKS=""
+
+# Detect gitleaks binary: check PATH first, then fall back to WinGet locations:
+# 1. WinGet Links directory ($LOCALAPPDATA/Microsoft/WinGet/Links/gitleaks.exe)
+# 2. WinGet Packages directory ($LOCALAPPDATA/Microsoft/WinGet/Packages/Gitleaks.Gitleaks_*/gitleaks.exe) if link creation failed
+if command -v gitleaks >/dev/null 2>&1; then
+  GITLEAKS="gitleaks"
+elif [ -n "$LOCALAPPDATA" ] && [ -f "$LOCALAPPDATA/Microsoft/WinGet/Links/gitleaks.exe" ]; then
+  GITLEAKS="$LOCALAPPDATA/Microsoft/WinGet/Links/gitleaks.exe"
+elif [ -n "$LOCALAPPDATA" ]; then
+  for candidate in "$LOCALAPPDATA"/Microsoft/WinGet/Packages/Gitleaks.Gitleaks_*/gitleaks.exe; do
+    if [ -f "$candidate" ]; then
+      GITLEAKS="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -z "$GITLEAKS" ]; then
+  printf >&2 "%s\n" "Hata: gitleaks bulunamadı. Commit işlemi durduruldu."
+  printf >&2 "%s\n" "Gitleaks yüklemek için şu komutu çalıştırabilirsiniz: winget install --id Gitleaks.Gitleaks -e"
+  exit 1
+fi
+
+if ! "$GITLEAKS" git --pre-commit --staged --redact --no-banner; then
+  printf >&2 "%s\n" "Hata: Olası bir gizli bilgi (secret) tespit edildi. Commit işlemi durduruldu."
+  printf >&2 "%s\n" "Lütfen ilgili değeri dosyadan kaldırıp commit edilmeyen yerel bir .env dosyasına taşıyın."
+  exit 1
+fi
+
+exit 0
