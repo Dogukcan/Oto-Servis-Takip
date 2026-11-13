@@ -22,6 +22,16 @@ Anahtarlara yalnızca backend kodu (sunucu tarafı, `process.env` / `os.environ`
 3. Sağlayıcının kullanım/log geçmişinden anahtarın yetkisiz kullanılıp kullanılmadığını kontrol et.
 4. Sızıntının nereden geldiğini bul (commit geçmişi, log dosyası, ekran görüntüsü vb.) ve o kaynağı kapat.
 
+## Commit öncesi gizli bilgi taraması
+
+Her commit'ten önce `gitleaks`, commit'e girecek değişiklikleri anahtar, token ve şifre için tarar. Olası bir gizli bilgi bulursa commit durur.
+
+- Tarama `.githooks/pre-commit` dosyasındadır ve depoyla birlikte gelir.
+- Hook her bilgisayarda bir kez açılmalıdır. Depo yeni bir yere kopyalandığında (clone) şu komut çalıştırılır: `git config core.hooksPath .githooks`
+- `gitleaks` kurulu değilse commit durur; hook sessizce geçmez. Kurulum: `winget install --id Gitleaks.Gitleaks -e`
+- Commit durursa değer dosyadan çıkarılır ve repoya girmeyen yerel `.env.local` dosyasına taşınır.
+- Bu tarama bir ek güvencedir; yukarıdaki kuralların yerini tutmaz.
+
 ## API eklendiğinde uygulanacak mimari kural
 
 Şu an projede somut bir dış API yok. İleride bir API eklendiğinde şu kurallar geçerli olacak:
