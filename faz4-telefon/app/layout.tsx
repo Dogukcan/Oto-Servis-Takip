@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow } from "next/font/google";
+import { KurulumUyarisi } from "@/components/KurulumUyarisi";
 import { UstBar } from "@/components/UstBar";
-import { VeriSaglayici } from "@/components/VeriSaglayici";
+import { VeriIcerigi, VeriSaglayici } from "@/components/VeriSaglayici";
 import { TEMA_BASLANGIC_BETIGI } from "@/lib/tema";
 import "./globals.css";
 
@@ -35,10 +36,13 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: TEMA_BASLANGIC_BETIGI }} />
       </head>
       <body>
-        <UstBar />
-        <main>
-          <VeriSaglayici>{children}</VeriSaglayici>
-        </main>
+        <VeriSaglayici>
+          <UstBar />
+          <main>
+            <KurulumUyarisi />
+            <VeriIcerigi>{children}</VeriIcerigi>
+          </main>
+        </VeriSaglayici>
       </body>
     </html>
   );

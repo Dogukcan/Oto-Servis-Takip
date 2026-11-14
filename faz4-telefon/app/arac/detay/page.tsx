@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { aracGetir, kullanimSay } from "@/lib/depo";
+import { useRouter, useSearchParams } from "next/navigation";
+import { aracGetir, aracSil, kullanimSay } from "@/lib/depo";
+import type { Arac } from "@/lib/types";
 import {
   bakimaKalanGun,
   hesaplaBakimDurumu,
@@ -17,11 +18,27 @@ import { Plaka } from "@/components/Plaka";
 import { useVeri } from "@/components/VeriSaglayici";
 
 function AracDetayIcerigi() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { veri, guncelle } = useVeri();
+  const [silmeOnayiAcik, setSilmeOnayiAcik] = useState(false);
+  const [siliniyor, setSiliniyor] = useState(false);
+  const [silmeHatasi, setSilmeHatasi] = useState<string | null>(null);
 
   const plaka = (searchParams.get("plaka") ?? "").trim();
-  const arac = plaka === "" ? undefined : aracGetir(veri, plaka);
+  const guncelArac = plaka === "" ? undefined : aracGetir(veri, plaka);
+
+  // Keeps the last found vehicle while deletion navigates back to "/", so the
+  // page does not flash "Araç bulunamadı." during the redirect.
+  const sonBulunanRef = useRef<{ plaka: string; arac: Arac } | null>(null);
+  if (guncelArac !== undefined) {
+    sonBulunanRef.current = { plaka, arac: guncelArac };
+  }
+  const arac =
+    guncelArac ??
+    (siliniyor && sonBulunanRef.current?.plaka === plaka
+      ? sonBulunanRef.current.arac
+      : undefined);
 
   if (!arac) {
     return (
@@ -45,6 +62,24 @@ function AracDetayIcerigi() {
   const sonrakiBakim = sonSonrakiBakimTarihi(arac);
   // Newest job first: that is the one the mechanic is asked about.
   const islemler = [...arac.islemler].reverse();
+  const aktifPlaka = arac.plaka;
+
+  async function kaydiSil() {
+    if (siliniyor) return;
+    setSiliniyor(true);
+    setSilmeHatasi(null);
+    try {
+      await guncelle((v) => aracSil(v, aktifPlaka).veri);
+      router.push("/");
+    } catch (hata) {
+      setSilmeHatasi(
+        hata instanceof Error && hata.message
+          ? hata.message
+          : "Kayıt silinirken bir hata oluştu."
+      );
+      setSiliniyor(false);
+    }
+  }
 
   return (
     <>
@@ -97,7 +132,53 @@ function AracDetayIcerigi() {
         >
           Bilgileri Düzenle
         </Link>
+        <button
+          type="button"
+          className="buyuk-buton ikincil-buton tehlikeli-buton"
+          onClick={() => {
+            setSilmeHatasi(null);
+            setSilmeOnayiAcik(true);
+          }}
+          disabled={siliniyor}
+        >
+          Kaydı Sil
+        </button>
       </div>
+
+      {silmeOnayiAcik && (
+        <div
+          className="onay-kutusu"
+          role="region"
+          aria-label="Kayıt silme onayı"
+        >
+          <p className="onay-metni">
+            Bu aracın ve {arac.islemler.length} işleminin kaydı kalıcı olarak
+            silinecek. Bu işlem geri alınamaz.
+          </p>
+          {silmeHatasi && <p className="hata-metni">{silmeHatasi}</p>}
+          <div className="eylem-satiri">
+            <button
+              type="button"
+              className="buyuk-buton tehlikeli-onay-butonu"
+              onClick={kaydiSil}
+              disabled={siliniyor}
+            >
+              {siliniyor ? "Siliniyor..." : "Evet, Sil"}
+            </button>
+            <button
+              type="button"
+              className="buyuk-buton ikincil-buton"
+              onClick={() => {
+                setSilmeOnayiAcik(false);
+                setSilmeHatasi(null);
+              }}
+              disabled={siliniyor}
+            >
+              Vazgeç
+            </button>
+          </div>
+        </div>
+      )}
 
       <h2>İşlem Geçmişi</h2>
       {islemler.length === 0 ? (

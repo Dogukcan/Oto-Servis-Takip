@@ -8,6 +8,8 @@ const BAGLANTILAR = [
   { href: "/kayit/", etiket: "Yeni Kayıt" },
   { href: "/arac/", etiket: "Araç Ara" },
   { href: "/hatirlatma/", etiket: "Hatırlatmalar" },
+  { href: "/yedek/", etiket: "Yedek" },
+  { href: "/kullanim/", etiket: "Kullanım" },
 ];
 
 // Normalises paths so active-link matching works both with and without

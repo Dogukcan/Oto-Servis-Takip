@@ -108,17 +108,24 @@ export function VeriSaglayici({ children }: { children: ReactNode }) {
 
   return (
     <VeriBaglami.Provider value={{ veri, yukleniyor, hata, guncelle }}>
-      {yukleniyor ? (
-        <p className="bos-durum">Yükleniyor…</p>
-      ) : hata !== null ? (
-        <p className="bos-durum hata-metni" role="alert">
-          {hata}
-        </p>
-      ) : (
-        children
-      )}
+      {children}
     </VeriBaglami.Provider>
   );
+}
+
+export function VeriIcerigi({ children }: { children: ReactNode }) {
+  const { yukleniyor, hata } = useVeri();
+  if (yukleniyor) {
+    return <p className="bos-durum">Yükleniyor…</p>;
+  }
+  if (hata !== null) {
+    return (
+      <p className="bos-durum hata-metni" role="alert">
+        {hata}
+      </p>
+    );
+  }
+  return <>{children}</>;
 }
 
 export function useVeri(): VeriBaglamiDegeri {
