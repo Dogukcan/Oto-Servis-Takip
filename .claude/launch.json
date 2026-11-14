@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "faz4-telefon", "run", "dev", "--", "-p", "3104"],
       "port": 3104
+    },
+    {
+      "name": "faz4-telefon-derlenmis",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3105", "--bind", "127.0.0.1", "--directory", "faz4-telefon/out"],
+      "port": 3105
     }
   ]
 }
