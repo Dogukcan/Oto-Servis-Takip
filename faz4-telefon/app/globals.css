@@ -147,12 +147,26 @@ nav.menu .yedek-dugmesi {
   cursor: pointer;
 }
 
-nav.menu a:hover,
+nav.menu .yedek-dugmesi {
+  border: 1.5px solid var(--kontrol);
+  background: var(--yuzey);
+  color: var(--metin);
+  font-weight: 600;
+}
+
+nav.menu a:hover {
+  color: var(--metin);
+}
+
 nav.menu .yedek-dugmesi:hover:not(:disabled) {
+  background: var(--aktif);
   color: var(--metin);
 }
 
 nav.menu .yedek-dugmesi:disabled {
+  border-color: var(--cizgi);
+  background: transparent;
+  color: var(--soluk);
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -697,8 +711,7 @@ form.kayit-genis {
 }
 
 @media (max-width: 899px) {
-  .form-izgara,
-  .kullanim-ozet-izgara {
+  .form-izgara {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1189,6 +1202,10 @@ form.kayit-formu label.onay-satiri input {
 
   .tema-dugmesi {
     margin-left: auto;
+  }
+
+  .kullanim-ozet-izgara {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .kullanim-tablosu th,

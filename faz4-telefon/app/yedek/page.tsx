@@ -5,6 +5,7 @@ import {
   disaAktar,
   iceAktar,
   yedekAlindi,
+  yedektenYukle,
   type Veri,
 } from "@/lib/depo";
 import { tarihTR, yerelTarihISO } from "@/lib/format";
@@ -32,7 +33,7 @@ function toplamIslemSayisi(veri: Veri): number {
 }
 
 export default function YedekSayfasi() {
-  const { veri, guncelle } = useVeri();
+  const { veri, yukleniyor, hata, guncelle } = useVeri();
   const dosyaInputRef = useRef<HTMLInputElement>(null);
 
   const [yedekleniyor, setYedekleniyor] = useState(false);
@@ -41,8 +42,10 @@ export default function YedekSayfasi() {
   const [yuklemeBasarisi, setYuklemeBasarisi] = useState<string | null>(null);
   const [geriYukleniyor, setGeriYukleniyor] = useState(false);
 
+  const yedekEngelli = yedekleniyor || yukleniyor || hata !== null;
+
   async function yedekAl() {
-    if (yedekleniyor) return;
+    if (yedekEngelli) return;
     setYedekleniyor(true);
     try {
       const metin = disaAktar(veri);
@@ -92,7 +95,7 @@ export default function YedekSayfasi() {
     setGeriYukleniyor(true);
     setYuklemeHatasi(null);
     try {
-      await guncelle(() => dosyadanGelenVeri);
+      await guncelle((v) => yedektenYukle(v, dosyadanGelenVeri));
       setBekleyenYedek(null);
       if (dosyaInputRef.current) {
         dosyaInputRef.current.value = "";
@@ -120,10 +123,13 @@ export default function YedekSayfasi() {
   }
 
   const mevcutAracSayisi = veri.araclar.length;
+  const mevcutIslemSayisi = toplamIslemSayisi(veri);
   const dosyaAracSayisi = bekleyenYedek?.veri.araclar.length ?? 0;
   const dosyaIslemSayisi = bekleyenYedek
     ? toplamIslemSayisi(bekleyenYedek.veri)
     : 0;
+  const kayipUyarisiVar =
+    mevcutAracSayisi > dosyaAracSayisi || mevcutIslemSayisi > dosyaIslemSayisi;
 
   return (
     <>
@@ -136,20 +142,22 @@ export default function YedekSayfasi() {
             Kayıtlarınızı telefonunuza veya bulut klasörünüze JSON dosyası
             olarak kaydedin.
           </p>
-          <div className="bakim-ozeti yedek-durum-kutusu">
-            <div className="bakim-ozeti-metin">
-              <span className="ozet-etiketi">Son yedek</span>
-              <span className="ozet-degeri">
-                {sonYedekMetni(veri.sonYedek)}
-              </span>
+          {hata === null && (
+            <div className="bakim-ozeti yedek-durum-kutusu">
+              <div className="bakim-ozeti-metin">
+                <span className="ozet-etiketi">Son yedek</span>
+                <span className="ozet-degeri">
+                  {sonYedekMetni(veri.sonYedek)}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           <div className="eylem-satiri">
             <button
               type="button"
               className="buyuk-buton"
               onClick={yedekAl}
-              disabled={yedekleniyor}
+              disabled={yedekEngelli}
             >
               {yedekleniyor ? "Yedek Hazırlanıyor..." : "Yedek Al"}
             </button>
@@ -198,20 +206,30 @@ export default function YedekSayfasi() {
                   <dd>{bekleyenYedek.dosyaAdi}</dd>
                 </div>
                 <div>
+                  <dt>Telefondaki mevcut kayıt</dt>
+                  <dd>
+                    {mevcutAracSayisi} araç, {mevcutIslemSayisi} işlem
+                  </dd>
+                </div>
+                <div>
                   <dt>Dosyadaki kayıt</dt>
                   <dd>
                     {dosyaAracSayisi} araç, {dosyaIslemSayisi} işlem
                   </dd>
                 </div>
-                <div>
-                  <dt>Telefondaki mevcut kayıt</dt>
-                  <dd>{mevcutAracSayisi} araç</dd>
-                </div>
               </dl>
               <p className="onay-metni">
-                Telefondaki {mevcutAracSayisi} aracın yerine dosyadaki{" "}
-                {dosyaAracSayisi} araç yüklenecek. Bu işlem geri alınamaz.
+                Telefonda: {mevcutAracSayisi} araç, {mevcutIslemSayisi} işlem.{" "}
+                Dosyada: {dosyaAracSayisi} araç, {dosyaIslemSayisi} işlem.{" "}
+                Telefondaki kayıtların yerine dosyadaki kayıtlar yüklenecek. Bu
+                işlem geri alınamaz.
               </p>
+              {kayipUyarisiVar && (
+                <p className="onay-metni" role="alert">
+                  Uyarı: Telefonda dosyadakinden daha fazla kayıt var. Geri
+                  yüklerseniz telefondaki yeni kayıtlar kaybolacaktır.
+                </p>
+              )}
               <div className="eylem-satiri">
                 <button
                   type="button"

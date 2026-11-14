@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { aracGuncelle } from "@/lib/depo";
 import { dogrulaPlaka, telefonGecerliMi } from "@/lib/format";
 import { aracGuncellemeDogrula } from "@/lib/kayit-dogrula";
+import { detayYolu } from "@/lib/plaka-baglantisi";
 import { useVeri } from "./VeriSaglayici";
 
 interface FormHatalari {
@@ -27,7 +28,7 @@ export function AracDuzenleFormu({ plaka, musteri, telefon }: Props) {
   const [sunucuHatasi, setSunucuHatasi] = useState<string | null>(null);
   const [kaydediliyor, setKaydediliyor] = useState(false);
 
-  const detayAdresi = `/arac/detay/?plaka=${encodeURIComponent(plaka)}`;
+  const detayAdresi = detayYolu(plaka);
 
   async function gonder(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,9 +85,7 @@ export function AracDuzenleFormu({ plaka, musteri, telefon }: Props) {
         return guncelleme.veri;
       });
 
-      router.push(
-        `/arac/detay/?plaka=${encodeURIComponent(dogrulama.yeniPlaka)}`
-      );
+      router.push(detayYolu(dogrulama.yeniPlaka));
     } catch (hata) {
       setSunucuHatasi(
         hata instanceof Error && hata.message

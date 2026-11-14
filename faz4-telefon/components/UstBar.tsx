@@ -22,13 +22,15 @@ function yedekUyariMetni(veri: Veri): string | null {
 }
 
 export function UstBar() {
-  const { veri, yukleniyor, guncelle } = useVeri();
+  const { veri, yukleniyor, hata, guncelle } = useVeri();
   const [yedekleniyor, setYedekleniyor] = useState(false);
 
-  const yedekUyarisi = yedekUyariMetni(veri);
+  const yedekEngelli = yedekleniyor || yukleniyor || hata !== null;
+  const yedekUyarisi =
+    yukleniyor || hata !== null ? null : yedekUyariMetni(veri);
 
   async function yedekAl() {
-    if (yedekleniyor || yukleniyor) return;
+    if (yedekEngelli) return;
     setYedekleniyor(true);
     try {
       const metin = disaAktar(veri);
@@ -58,7 +60,7 @@ export function UstBar() {
           type="button"
           className="yedek-dugmesi"
           onClick={yedekAl}
-          disabled={yedekleniyor || yukleniyor}
+          disabled={yedekEngelli}
         >
           Yedek Al
           {yedekUyarisi !== null && (

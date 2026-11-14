@@ -9,6 +9,7 @@ import {
   aracSil,
   kullanimSay,
   yedekAlindi,
+  yedektenYukle,
   sonYedektenBuYanaGun,
   disaAktar,
   iceAktar,
@@ -147,6 +148,36 @@ test("islemEkle: girdiyi ve verilen işlem nesnesini değiştirmez", () => {
   yeniIslem.ucret = 999999;
   const arac = aracGetir(sonuc, "34 ABC 123");
   assert.equal(arac.islemler[arac.islemler.length - 1].ucret, 1500);
+});
+
+test("islemEkle: boşluk farkı olan plakayı mevcut araca ekler, kayıtlı plakayı korur ve dışa/içe aktarımda geçerli kalır", () => {
+  let veri = islemEkle(
+    bosVeri(),
+    "34ABC123",
+    "Eski Müşteri",
+    "0532 111 11 11",
+    islem("2025-05-10", "Far ayarı", 400)
+  );
+  veri = islemEkle(
+    veri,
+    "34 ABC 123",
+    "Yeni Müşteri",
+    "0532 222 22 22",
+    islem("2026-11-14", "Akü değişimi", 1800)
+  );
+
+  assert.equal(veri.araclar.length, 1);
+  assert.equal(veri.araclar[0].plaka, "34ABC123");
+  assert.equal(veri.araclar[0].musteri, "Yeni Müşteri");
+  assert.equal(veri.araclar[0].telefon, "0532 222 22 22");
+  assert.deepEqual(
+    veri.araclar[0].islemler.map((i) => i.tarih),
+    ["2025-05-10", "2026-11-14"]
+  );
+
+  const aktarim = iceAktar(disaAktar(veri));
+  assert.equal(aktarim.tamam, true, aktarim.hata);
+  assert.deepEqual(aktarim.veri, veri);
 });
 
 // --- aracGuncelle -------------------------------------------------------------
@@ -288,6 +319,40 @@ test("yedekAlindi: zaman verilmezse şimdiki an", () => {
   const yeni = yedekAlindi(bosVeri());
   const sonra = Date.now();
   const an = Date.parse(yeni.sonYedek);
+  assert.ok(an >= once && an <= sonra);
+});
+
+test("yedektenYukle: dosyadan yalnızca araçları alır, telefonun kullanımını korur ve sonYedek zamanını günceller", () => {
+  let mevcut = bosVeri();
+  mevcut = islemEkle(mevcut, "06 ELY 99", "Mehmet", "0544 999 88 77", islem("2026-01-01"));
+  mevcut = kullanimSay(mevcut, "acilis", "2026-11-14");
+  mevcut = kullanimSay(mevcut, "kayit", "2026-11-14");
+  mevcut = yedekAlindi(mevcut, "2026-10-01T08:00:00.000Z");
+
+  let dosyadan = ornekVeri();
+  dosyadan = kullanimSay(dosyadan, "whatsapp", "2025-05-05");
+  dosyadan = yedekAlindi(dosyadan, "2025-05-05T10:00:00.000Z");
+
+  const mevcutKopya = structuredClone(mevcut);
+  const dosyadanKopya = structuredClone(dosyadan);
+
+  const sonuc = yedektenYukle(mevcut, dosyadan, "2026-11-14T15:30:00.000Z");
+  assert.deepEqual(sonuc.araclar, dosyadan.araclar);
+  assert.deepEqual(sonuc.kullanim, mevcut.kullanim);
+  assert.equal(sonuc.sonYedek, "2026-11-14T15:30:00.000Z");
+
+  // Mutating the result must not touch either input.
+  sonuc.araclar[0].musteri = "Değişti";
+  sonuc.kullanim["2026-11-14"].acilis = 999;
+  assert.deepEqual(mevcut, mevcutKopya);
+  assert.deepEqual(dosyadan, dosyadanKopya);
+});
+
+test("yedektenYukle: zaman verilmezse şimdiki zamanı yazar", () => {
+  const once = Date.now();
+  const sonuc = yedektenYukle(bosVeri(), ornekVeri());
+  const sonra = Date.now();
+  const an = Date.parse(sonuc.sonYedek);
   assert.ok(an >= once && an <= sonra);
 });
 

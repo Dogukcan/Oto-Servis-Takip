@@ -7,6 +7,7 @@ import {
   sonSonrakiBakimTarihi,
 } from "@/lib/bakim-durumu";
 import { tarihTR } from "@/lib/format";
+import { detayYolu } from "@/lib/plaka-baglantisi";
 import { DurumRozeti } from "./DurumRozeti";
 import { Plaka } from "./Plaka";
 
@@ -52,7 +53,7 @@ export function AracListesi({ araclar }: { araclar: Arac[] }) {
           <li key={arac.plaka}>
             <Link
               className="arac-satiri"
-              href={`/arac/detay/?plaka=${encodeURIComponent(arac.plaka)}`}
+              href={detayYolu(arac.plaka)}
             >
               <span className="hucre-plaka">
                 <Plaka plaka={arac.plaka} />

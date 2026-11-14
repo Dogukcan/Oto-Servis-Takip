@@ -119,7 +119,8 @@ export function aracGetir(veri: Veri, plaka: string): Arac | undefined {
 // ---------------------------------------------------------------------------
 // Updates
 
-// Adds a job. A new plate creates the vehicle; an existing one gets its name
+// Adds a job. A new plate creates the vehicle; an existing one (matched by
+// space-free plakaAnahtari, keeping its stored plate text) gets its name
 // and phone updated and the job appended to the end of its history.
 export function islemEkle(
   veri: Veri,
@@ -130,7 +131,10 @@ export function islemEkle(
 ): Veri {
   const yeni = veriKopyala(veri);
   const yeniIslem = islemKopyala(islem);
-  const mevcut = yeni.araclar.find((a) => a.plaka === plaka);
+  const arananAnahtar = plakaAnahtari(plaka);
+  const mevcut = yeni.araclar.find(
+    (a) => plakaAnahtari(a.plaka) === arananAnahtar
+  );
   if (mevcut === undefined) {
     yeni.araclar.push({ plaka, musteri, telefon, islemler: [yeniIslem] });
   } else {
@@ -210,6 +214,21 @@ export function yedekAlindi(
   const yeni = veriKopyala(veri);
   yeni.sonYedek = zaman;
   return yeni;
+}
+
+// Restores only `araclar` from a validated backup file, keeping the phone's
+// own `kullanim` counters and setting `sonYedek` to `zaman` (now by default).
+export function yedektenYukle(
+  mevcut: Veri,
+  dosyadan: Veri,
+  zaman: string = new Date().toISOString()
+): Veri {
+  return {
+    surum: 1,
+    araclar: dosyadan.araclar.map(aracKopyala),
+    kullanim: kullanimKopyala(mevcut.kullanim),
+    sonYedek: zaman,
+  };
 }
 
 // Whole local calendar days between the last export and `buAn`; null if no

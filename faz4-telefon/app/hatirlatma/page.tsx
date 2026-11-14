@@ -9,6 +9,7 @@ import {
   sonSonrakiBakimTarihi,
 } from "@/lib/bakim-durumu";
 import { tarihTR } from "@/lib/format";
+import { detayYolu } from "@/lib/plaka-baglantisi";
 import { whatsappLinkOlustur } from "@/lib/whatsapp";
 import { DurumRozeti } from "@/components/DurumRozeti";
 import { Plaka } from "@/components/Plaka";
@@ -70,7 +71,7 @@ export default function HatirlatmaSayfasi() {
             <li key={arac.plaka} className="hatirlatma-satiri">
               <Link
                 className="hatirlatma-bilgi"
-                href={`/arac/detay/?plaka=${encodeURIComponent(arac.plaka)}`}
+                href={detayYolu(arac.plaka)}
               >
                 <span className="hucre-plaka">
                   <Plaka plaka={arac.plaka} />

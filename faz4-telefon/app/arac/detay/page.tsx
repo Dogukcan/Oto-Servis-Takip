@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { aracGetir, aracSil, kullanimSay } from "@/lib/depo";
 import type { Arac } from "@/lib/types";
 import {
@@ -12,25 +12,31 @@ import {
   sonSonrakiBakimTarihi,
 } from "@/lib/bakim-durumu";
 import { tarihTR } from "@/lib/format";
+import { duzenleYolu, usePlaka } from "@/lib/plaka-baglantisi";
 import { whatsappLinkOlustur } from "@/lib/whatsapp";
 import { DurumRozeti } from "@/components/DurumRozeti";
 import { Plaka } from "@/components/Plaka";
 import { useVeri } from "@/components/VeriSaglayici";
 
-function AracDetayIcerigi() {
+export default function AracDetaySayfasi() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const okunanPlaka = usePlaka();
   const { veri, guncelle } = useVeri();
   const [silmeOnayiAcik, setSilmeOnayiAcik] = useState(false);
   const [siliniyor, setSiliniyor] = useState(false);
   const [silmeHatasi, setSilmeHatasi] = useState<string | null>(null);
 
-  const plaka = (searchParams.get("plaka") ?? "").trim();
-  const guncelArac = plaka === "" ? undefined : aracGetir(veri, plaka);
-
   // Keeps the last found vehicle while deletion navigates back to "/", so the
   // page does not flash "Araç bulunamadı." during the redirect.
   const sonBulunanRef = useRef<{ plaka: string; arac: Arac } | null>(null);
+
+  if (okunanPlaka === null) {
+    return <p className="bos-durum">Yükleniyor…</p>;
+  }
+
+  const plaka = okunanPlaka;
+  const guncelArac = plaka === "" ? undefined : aracGetir(veri, plaka);
+
   if (guncelArac !== undefined) {
     sonBulunanRef.current = { plaka, arac: guncelArac };
   }
@@ -128,7 +134,7 @@ function AracDetayIcerigi() {
         </a>
         <Link
           className="buyuk-buton ikincil-buton"
-          href={`/arac/duzenle/?plaka=${encodeURIComponent(arac.plaka)}`}
+          href={duzenleYolu(arac.plaka)}
         >
           Bilgileri Düzenle
         </Link>
@@ -216,13 +222,5 @@ function AracDetayIcerigi() {
         </div>
       )}
     </>
-  );
-}
-
-export default function AracDetaySayfasi() {
-  return (
-    <Suspense fallback={<p className="bos-durum">Yükleniyor…</p>}>
-      <AracDetayIcerigi />
-    </Suspense>
   );
 }
