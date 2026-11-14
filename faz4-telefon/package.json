@@ -1,0 +1,7 @@
+{
+  "name": "faz4-telefon",
+  "private": true,
+  "scripts": {
+    "test": "node --import ./tests/kurulum.mjs --test \"tests/*.test.mjs\""
+  }
+}
