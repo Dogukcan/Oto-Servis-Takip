@@ -90,10 +90,16 @@ header.ust-bar {
   align-items: center;
   justify-content: space-between;
   gap: 8px 24px;
-  /* Keeps the brand on the same left edge as the page content below it. */
-  padding: 14px
+  /* Keeps the brand on the same left edge as the page content below it, while
+     clearing the iPhone notch / status bar and horizontal safe areas. */
+  padding: calc(14px + env(safe-area-inset-top, 0px))
     max(
-      var(--kenar-boslugu),
+      calc(var(--kenar-boslugu) + env(safe-area-inset-right, 0px)),
+      calc((100% - var(--sayfa-genisligi)) / 2 + var(--kenar-boslugu))
+    )
+    14px
+    max(
+      calc(var(--kenar-boslugu) + env(safe-area-inset-left, 0px)),
       calc((100% - var(--sayfa-genisligi)) / 2 + var(--kenar-boslugu))
     );
   border-bottom: 1px solid var(--cizgi);
@@ -207,7 +213,10 @@ nav.menu a[aria-current="page"] {
 main {
   max-width: var(--sayfa-genisligi);
   margin: 0 auto;
-  padding: 36px var(--kenar-boslugu) 64px;
+  padding: 36px
+    calc(var(--kenar-boslugu) + env(safe-area-inset-right, 0px))
+    calc(64px + env(safe-area-inset-bottom, 0px))
+    calc(var(--kenar-boslugu) + env(safe-area-inset-left, 0px));
 }
 
 /* Titles */
