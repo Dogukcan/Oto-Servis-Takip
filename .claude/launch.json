@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "faz4-telefon",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "faz4-telefon", "run", "dev", "--", "-p", "3104"],
+      "port": 3104
+    }
+  ]
+}
