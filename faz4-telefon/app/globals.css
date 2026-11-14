@@ -925,6 +925,20 @@ form.kayit-formu label.onay-satiri input {
   overflow-wrap: anywhere;
 }
 
+.yedek-kayip-uyarisi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--hata);
+  border-radius: var(--yaricap);
+  background: var(--gecmis-zemin);
+}
+
+.yedek-kayip-uyarisi .onay-metni {
+  color: var(--gecmis-metin);
+}
+
 /* Usage summary page */
 
 .kullanim-ozet-izgara {

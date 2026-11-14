@@ -10,6 +10,7 @@ import {
   kullanimSay,
   yedekAlindi,
   yedektenYukle,
+  geriYuklemeFarki,
   sonYedektenBuYanaGun,
   disaAktar,
   iceAktar,
@@ -354,6 +355,142 @@ test("yedektenYukle: zaman verilmezse şimdiki zamanı yazar", () => {
   const sonra = Date.now();
   const an = Date.parse(sonuc.sonYedek);
   assert.ok(an >= once && an <= sonra);
+});
+
+test("geriYuklemeFarki: kayıp olmadığında sıfır döner", () => {
+  const mevcut = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10")
+  );
+  // Identical data or superset in the backup file: nothing lost.
+  assert.deepEqual(geriYuklemeFarki(bosVeri(), ornekVeri()), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 0,
+  });
+  assert.deepEqual(geriYuklemeFarki(mevcut, mevcut), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 0,
+  });
+  assert.deepEqual(geriYuklemeFarki(mevcut, ornekVeri()), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 0,
+  });
+});
+
+test("geriYuklemeFarki: yalnızca telefonda olan aracı ve işlemlerini bildirir", () => {
+  const mevcut = islemEkle(
+    bosVeri(),
+    "06 AB 45",
+    "Mehmet",
+    "0544 111 22 33",
+    islem("2026-04-01")
+  );
+  let dosyadan = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10")
+  );
+  dosyadan = islemEkle(
+    dosyadan,
+    "01 AB 01",
+    "Ayşe",
+    "0533 111 22 33",
+    islem("2026-03-05")
+  );
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 1,
+    silinecekPlakalar: ["06 AB 45"],
+    kaybolacakIslemSayisi: 1,
+  });
+});
+
+test("geriYuklemeFarki: aynı araç dosyada daha az işleme sahipse aradaki farkı sayar", () => {
+  const dosyadan = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10")
+  );
+  let mevcut = islemEkle(
+    dosyadan,
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-06-20", "Marş motoru", 2500)
+  );
+  mevcut = islemEkle(
+    mevcut,
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-09-15", "Şarj dinamosu", 3200)
+  );
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 2,
+  });
+
+  // Combined: a missing vehicle (1 job) + an existing vehicle with 2 extra jobs on the phone.
+  const mevcutBirlesik = islemEkle(
+    mevcut,
+    "06 AB 45",
+    "Mehmet",
+    "0544 111 22 33",
+    islem("2026-10-01")
+  );
+  assert.deepEqual(geriYuklemeFarki(mevcutBirlesik, dosyadan), {
+    silinecekAracSayisi: 1,
+    silinecekPlakalar: ["06 AB 45"],
+    kaybolacakIslemSayisi: 3,
+  });
+});
+
+test("geriYuklemeFarki: boşluklu ve boşluksuz yazılmış plakayı aynı araç sayar", () => {
+  const mevcutBosluksuz = islemEkle(
+    bosVeri(),
+    "34ABC123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10")
+  );
+  const dosyadanBosluklu = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10")
+  );
+
+  assert.deepEqual(geriYuklemeFarki(mevcutBosluksuz, dosyadanBosluklu), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 0,
+  });
+
+  const mevcutFazlaIslemli = islemEkle(
+    mevcutBosluksuz,
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-05-10", "Akü", 2000)
+  );
+  assert.deepEqual(geriYuklemeFarki(mevcutFazlaIslemli, dosyadanBosluklu), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 1,
+  });
 });
 
 test("sonYedektenBuYanaGun: hiç yedek yoksa null", () => {

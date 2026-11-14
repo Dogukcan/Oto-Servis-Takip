@@ -28,6 +28,12 @@ export type IceAktarmaSonucu =
   | { tamam: true; veri: Veri }
   | { tamam: false; hata: string };
 
+export interface GeriYuklemeFarki {
+  silinecekAracSayisi: number;
+  silinecekPlakalar: string[];
+  kaybolacakIslemSayisi: number;
+}
+
 const GUN_MS = 1000 * 60 * 60 * 24;
 
 // ---------------------------------------------------------------------------
@@ -228,6 +234,42 @@ export function yedektenYukle(
     araclar: dosyadan.araclar.map(aracKopyala),
     kullanim: kullanimKopyala(mevcut.kullanim),
     sonYedek: zaman,
+  };
+}
+
+// Compares the phone's current records with a backup file to find vehicles
+// that exist only on the phone (matched by space-free plakaAnahtari) and the
+// total number of phone jobs that restoring the file would lose.
+export function geriYuklemeFarki(
+  mevcut: Veri,
+  dosyadan: Veri
+): GeriYuklemeFarki {
+  const dosyadakiIslemSayilari = new Map<string, number>();
+  for (const arac of dosyadan.araclar) {
+    dosyadakiIslemSayilari.set(
+      plakaAnahtari(arac.plaka),
+      arac.islemler.length
+    );
+  }
+
+  const silinecekPlakalar: string[] = [];
+  let kaybolacakIslemSayisi = 0;
+
+  for (const arac of mevcut.araclar) {
+    const anahtar = plakaAnahtari(arac.plaka);
+    const dosyadakiSayi = dosyadakiIslemSayilari.get(anahtar);
+    if (dosyadakiSayi === undefined) {
+      silinecekPlakalar.push(arac.plaka);
+      kaybolacakIslemSayisi += arac.islemler.length;
+    } else if (arac.islemler.length > dosyadakiSayi) {
+      kaybolacakIslemSayisi += arac.islemler.length - dosyadakiSayi;
+    }
+  }
+
+  return {
+    silinecekAracSayisi: silinecekPlakalar.length,
+    silinecekPlakalar,
+    kaybolacakIslemSayisi,
   };
 }
 

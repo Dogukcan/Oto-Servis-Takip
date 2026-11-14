@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import {
   disaAktar,
+  geriYuklemeFarki,
   iceAktar,
   yedekAlindi,
   yedektenYukle,
@@ -11,6 +12,8 @@ import {
 import { tarihTR, yerelTarihISO } from "@/lib/format";
 import { yedegiPaylasVeyaIndir, yedekDosyaAdi } from "@/lib/yedek-dosyasi";
 import { useVeri } from "@/components/VeriSaglayici";
+
+const MAKS_GOSTERILEN_PLAKA = 5;
 
 interface BekleyenYedek {
   dosyaAdi: string;
@@ -128,8 +131,12 @@ export default function YedekSayfasi() {
   const dosyaIslemSayisi = bekleyenYedek
     ? toplamIslemSayisi(bekleyenYedek.veri)
     : 0;
+  const fark = bekleyenYedek
+    ? geriYuklemeFarki(veri, bekleyenYedek.veri)
+    : null;
   const kayipUyarisiVar =
-    mevcutAracSayisi > dosyaAracSayisi || mevcutIslemSayisi > dosyaIslemSayisi;
+    fark !== null &&
+    (fark.silinecekAracSayisi > 0 || fark.kaybolacakIslemSayisi > 0);
 
   return (
     <>
@@ -224,11 +231,23 @@ export default function YedekSayfasi() {
                 Telefondaki kayıtların yerine dosyadaki kayıtlar yüklenecek. Bu
                 işlem geri alınamaz.
               </p>
-              {kayipUyarisiVar && (
-                <p className="onay-metni" role="alert">
-                  Uyarı: Telefonda dosyadakinden daha fazla kayıt var. Geri
-                  yüklerseniz telefondaki yeni kayıtlar kaybolacaktır.
-                </p>
+              {kayipUyarisiVar && fark && (
+                <div className="yedek-kayip-uyarisi" role="alert">
+                  {fark.silinecekAracSayisi > 0 && (
+                    <p className="onay-metni">
+                      Telefondaki {fark.silinecekAracSayisi} araç dosyada yok ve
+                      silinecek:{" "}
+                      {fark.silinecekPlakalar
+                        .slice(0, MAKS_GOSTERILEN_PLAKA)
+                        .join(", ")}
+                      {fark.silinecekPlakalar.length > MAKS_GOSTERILEN_PLAKA &&
+                        ` (+${fark.silinecekPlakalar.length - MAKS_GOSTERILEN_PLAKA} araç daha)`}
+                    </p>
+                  )}
+                  <p className="onay-metni">
+                    Toplam {fark.kaybolacakIslemSayisi} işlem silinecek.
+                  </p>
+                </div>
               )}
               <div className="eylem-satiri">
                 <button
