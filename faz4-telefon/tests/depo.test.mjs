@@ -15,7 +15,7 @@ import {
   disaAktar,
   iceAktar,
 } from "../lib/depo.ts";
-import { yerelTarihISO } from "../lib/format.ts";
+import { plakaAnahtari, yerelTarihISO } from "../lib/format.ts";
 
 function islem(tarih, yapilanIs = "Akü değişimi", ucret = 1500) {
   return {
@@ -178,7 +178,10 @@ test("islemEkle: boşluk farkı olan plakayı mevcut araca ekler, kayıtlı plak
 
   const aktarim = iceAktar(disaAktar(veri));
   assert.equal(aktarim.tamam, true, aktarim.hata);
-  assert.deepEqual(aktarim.veri, veri);
+  assert.deepEqual(aktarim.veri, {
+    ...veri,
+    araclar: [{ ...veri.araclar[0], plaka: "34 ABC 123" }],
+  });
 });
 
 // --- aracGuncelle -------------------------------------------------------------
@@ -736,4 +739,45 @@ test("iceAktar: hata mesajı Türkçe ve yeri gösterir", () => {
   assert.equal(sonuc.tamam, false);
   assert.match(sonuc.hata, /2\. araçtaki 1\. işlem/);
   assert.match(sonuc.hata, /ücret/);
+});
+
+test("iceAktar: sonunda boşluk olan plaka biçimlenerek kaydedilir ve aracGetir ile bulunur", () => {
+  const sonuc = iceAktar(bozuk((h) => { h.araclar[0].plaka = "34 ABC 123 "; }));
+  assert.equal(sonuc.tamam, true, sonuc.hata);
+  assert.equal(sonuc.veri.araclar[0].plaka, "34 ABC 123");
+  assert.notEqual(aracGetir(sonuc.veri, "34 ABC 123"), undefined);
+});
+
+test("iceAktar: bitişik küçük harfli '34abc123' plakası '34 ABC 123' olarak kaydedilir", () => {
+  const sonuc = iceAktar(bozuk((h) => { h.araclar[0].plaka = "34abc123"; }));
+  assert.equal(sonuc.tamam, true, sonuc.hata);
+  assert.equal(sonuc.veri.araclar[0].plaka, "34 ABC 123");
+});
+
+test("iceAktar: Türkçe İ harfli '34 İS 123' plakası '34 IS 123' olarak kaydedilir", () => {
+  const sonuc = iceAktar(bozuk((h) => { h.araclar[0].plaka = "34 İS 123"; }));
+  assert.equal(sonuc.tamam, true, sonuc.hata);
+  assert.equal(sonuc.veri.araclar[0].plaka, "34 IS 123");
+});
+
+test("iceAktar: standart plaka biçiminde olmayan dolu plaka kırpılarak korunur", () => {
+  const sonuc = iceAktar(bozuk((h) => { h.araclar[0].plaka = "  ESKİ-PLAKA 1  "; }));
+  assert.equal(sonuc.tamam, true, sonuc.hata);
+  assert.equal(sonuc.veri.araclar[0].plaka, "ESKİ-PLAKA 1");
+});
+
+test("iceAktar: '34 ABC 123' ve '34abc123' içeren yedek mükerrer plaka olarak reddedilir", () => {
+  const sonuc = iceAktar(
+    bozuk((h) => {
+      h.araclar[0].plaka = "34 ABC 123";
+      h.araclar.push({ ...h.araclar[0], plaka: "34abc123" });
+    })
+  );
+  assert.equal(sonuc.tamam, false);
+  assert.match(sonuc.hata, /34 ABC 123/);
+});
+
+test("plakaAnahtari: '34 İs 123', '34 IS 123' ve '34 ıs 123' aynı anahtarı üretir", () => {
+  assert.equal(plakaAnahtari("34 İs 123"), plakaAnahtari("34 IS 123"));
+  assert.equal(plakaAnahtari("34 ıs 123"), plakaAnahtari("34 IS 123"));
 });

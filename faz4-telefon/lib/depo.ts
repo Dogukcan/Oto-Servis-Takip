@@ -1,5 +1,10 @@
 import type { Arac, Islem } from "./types";
-import { plakaAnahtari, tarihGecerliMi, yerelTarihISO } from "./format";
+import {
+  plakaAnahtari,
+  plakaBicimle,
+  tarihGecerliMi,
+  yerelTarihISO,
+} from "./format";
 import { MAKS_METIN_UZUNLUGU } from "./kayit-dogrula";
 
 // The whole data set of the phone version as one plain, JSON-serialisable
@@ -387,7 +392,7 @@ function aracOku(ham: unknown, aracNo: number): Arac {
     reddet(`${yer}: işlem listesi okunamadı.`);
   }
   return {
-    plaka,
+    plaka: plakaBicimle(plaka) ?? plaka.trim(),
     musteri,
     telefon,
     islemler: islemler.map((islem: unknown, i: number) =>

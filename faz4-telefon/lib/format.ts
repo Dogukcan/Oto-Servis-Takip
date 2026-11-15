@@ -53,7 +53,7 @@ export function formatPlaka(plaka: string): string {
 }
 
 export function plakaAnahtari(plaka: string): string {
-  return plaka.toUpperCase().replace(/\s+/g, "");
+  return plaka.replace(/[İı]/g, "I").toUpperCase().replace(/\s+/g, "");
 }
 
 // Returns the local calendar day of `an` as "YYYY-MM-DD". Unlike
