@@ -22,6 +22,7 @@ const geciciKlasor = fs.mkdtempSync(path.join(os.tmpdir(), "servis-test-"));
 process.env.SERVIS_TEST_KLASORU = geciciKlasor;
 process.env.SERVIS_DB_YOLU = path.join(geciciKlasor, "servis.db");
 process.env.SERVIS_YEDEK_DURUM_YOLU = path.join(geciciKlasor, "yedek-durum.json");
+process.env.SERVIS_ORNEK_VERI = "1";
 
 // Best effort clean-up. On Windows this can fail while a file is still open;
 // that only leaves a folder in the OS temp directory behind.

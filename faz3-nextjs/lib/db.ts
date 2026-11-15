@@ -32,12 +32,14 @@ db.exec(`
   );
 `);
 
-// İlk çalıştırmada veritabanı boşsa, Faz 2/3'te kullanılan sahte veriyle tohumla.
+// Seed sample vehicles only when explicitly opted in via SERVIS_ORNEK_VERI=1,
+// so a real shop installation starts with an empty database instead of fake
+// customers that would mix into real data or clash with phone backup imports.
 const aracSayisi = (
   db.prepare("SELECT COUNT(*) AS sayi FROM araclar").get() as { sayi: number }
 ).sayi;
 
-if (aracSayisi === 0) {
+if (aracSayisi === 0 && process.env.SERVIS_ORNEK_VERI === "1") {
   const aracEkle = db.prepare(
     "INSERT INTO araclar (plaka, musteri, telefon) VALUES (?, ?, ?)"
   );
