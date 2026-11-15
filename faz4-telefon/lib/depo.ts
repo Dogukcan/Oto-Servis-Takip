@@ -239,17 +239,23 @@ export function yedektenYukle(
 
 // Compares the phone's current records with a backup file to find vehicles
 // that exist only on the phone (matched by space-free plakaAnahtari) and the
-// total number of phone jobs that restoring the file would lose.
+// total number of phone jobs that restoring the file would lose. For a vehicle
+// present on both sides, jobs are compared across all five fields using
+// multiset matching (pooling file vehicles that share a plakaAnahtari), so
+// each file job can match at most one equal phone job.
 export function geriYuklemeFarki(
   mevcut: Veri,
   dosyadan: Veri
 ): GeriYuklemeFarki {
-  const dosyadakiIslemSayilari = new Map<string, number>();
+  const dosyadakiIslemler = new Map<string, Islem[]>();
   for (const arac of dosyadan.araclar) {
-    dosyadakiIslemSayilari.set(
-      plakaAnahtari(arac.plaka),
-      arac.islemler.length
-    );
+    const anahtar = plakaAnahtari(arac.plaka);
+    const havuz = dosyadakiIslemler.get(anahtar);
+    if (havuz === undefined) {
+      dosyadakiIslemler.set(anahtar, [...arac.islemler]);
+    } else {
+      havuz.push(...arac.islemler);
+    }
   }
 
   const silinecekPlakalar: string[] = [];
@@ -257,12 +263,26 @@ export function geriYuklemeFarki(
 
   for (const arac of mevcut.araclar) {
     const anahtar = plakaAnahtari(arac.plaka);
-    const dosyadakiSayi = dosyadakiIslemSayilari.get(anahtar);
-    if (dosyadakiSayi === undefined) {
+    const kalanIslemler = dosyadakiIslemler.get(anahtar);
+    if (kalanIslemler === undefined) {
       silinecekPlakalar.push(arac.plaka);
       kaybolacakIslemSayisi += arac.islemler.length;
-    } else if (arac.islemler.length > dosyadakiSayi) {
-      kaybolacakIslemSayisi += arac.islemler.length - dosyadakiSayi;
+    } else {
+      for (const islem of arac.islemler) {
+        const eslesenSira = kalanIslemler.findIndex(
+          (d) =>
+            d.tarih === islem.tarih &&
+            d.yapilanIs === islem.yapilanIs &&
+            d.ucret === islem.ucret &&
+            d.garantiBitis === islem.garantiBitis &&
+            d.sonrakiBakim === islem.sonrakiBakim
+        );
+        if (eslesenSira === -1) {
+          kaybolacakIslemSayisi += 1;
+        } else {
+          kalanIslemler.splice(eslesenSira, 1);
+        }
+      }
     }
   }
 

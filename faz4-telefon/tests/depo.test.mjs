@@ -363,7 +363,7 @@ test("geriYuklemeFarki: kayıp olmadığında sıfır döner", () => {
     "34 ABC 123",
     "Ahmet",
     "0532 123 45 67",
-    islem("2026-01-10")
+    islem("2026-01-10", "Far ayarı", 300)
   );
   // Identical data or superset in the backup file: nothing lost.
   assert.deepEqual(geriYuklemeFarki(bosVeri(), ornekVeri()), {
@@ -487,6 +487,99 @@ test("geriYuklemeFarki: boşluklu ve boşluksuz yazılmış plakayı aynı araç
     islem("2026-05-10", "Akü", 2000)
   );
   assert.deepEqual(geriYuklemeFarki(mevcutFazlaIslemli, dosyadanBosluklu), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 1,
+  });
+});
+
+test("geriYuklemeFarki: aynı plakada işlem sayısı eşit olsa bile dosyada olmayan işlemi sayar", () => {
+  const islemA = islem("2026-01-10", "Far ayarı", 300);
+  const islemB = islem("2026-03-15", "Akü değişimi", 1500);
+  const islemC = islem("2026-06-20", "Marş motoru", 2500);
+
+  let mevcut = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  mevcut = islemEkle(mevcut, "34 ABC 123", "Ahmet", "0532 123 45 67", islemB);
+
+  let dosyadan = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  dosyadan = islemEkle(dosyadan, "34 ABC 123", "Ahmet", "0532 123 45 67", islemC);
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 1,
+  });
+});
+
+test("geriYuklemeFarki: dosyada daha fazla işlem olsa bile telefondaki eşleşmeyen işlemi sayar", () => {
+  const islemA = islem("2026-01-10", "Far ayarı", 300);
+  const islemB = islem("2026-03-15", "Akü değişimi", 1500);
+  const islemC = islem("2026-06-20", "Marş motoru", 2500);
+  const islemD = islem("2026-09-01", "Şarj dinamosu", 3200);
+
+  let mevcut = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  mevcut = islemEkle(mevcut, "34 ABC 123", "Ahmet", "0532 123 45 67", islemB);
+
+  let dosyadan = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  dosyadan = islemEkle(dosyadan, "34 ABC 123", "Ahmet", "0532 123 45 67", islemC);
+  dosyadan = islemEkle(dosyadan, "34 ABC 123", "Ahmet", "0532 123 45 67", islemD);
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 1,
+  });
+});
+
+test("geriYuklemeFarki: telefonda iki özdeş işlem, dosyada tek işlem varsa bir kayıp sayar", () => {
+  const islemA = islem("2026-01-10", "Far ayarı", 300);
+
+  let mevcut = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  mevcut = islemEkle(mevcut, "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+
+  const dosyadan = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 1,
+  });
+});
+
+test("geriYuklemeFarki: aynı işlemler farklı sırada olduğunda kayıp saymaz", () => {
+  const islemA = islem("2026-01-10", "Far ayarı", 300);
+  const islemB = islem("2026-03-15", "Akü değişimi", 1500);
+
+  let mevcut = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+  mevcut = islemEkle(mevcut, "34 ABC 123", "Ahmet", "0532 123 45 67", islemB);
+
+  let dosyadan = islemEkle(bosVeri(), "34 ABC 123", "Ahmet", "0532 123 45 67", islemB);
+  dosyadan = islemEkle(dosyadan, "34 ABC 123", "Ahmet", "0532 123 45 67", islemA);
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
+    silinecekAracSayisi: 0,
+    silinecekPlakalar: [],
+    kaybolacakIslemSayisi: 0,
+  });
+});
+
+test("geriYuklemeFarki: yalnızca ücreti farklı olan işlemleri farklı sayar", () => {
+  const mevcut = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10", "Far ayarı", 300)
+  );
+  const dosyadan = islemEkle(
+    bosVeri(),
+    "34 ABC 123",
+    "Ahmet",
+    "0532 123 45 67",
+    islem("2026-01-10", "Far ayarı", 350)
+  );
+
+  assert.deepEqual(geriYuklemeFarki(mevcut, dosyadan), {
     silinecekAracSayisi: 0,
     silinecekPlakalar: [],
     kaybolacakIslemSayisi: 1,
