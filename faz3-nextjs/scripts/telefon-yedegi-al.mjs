@@ -51,6 +51,14 @@ if (!okuma.tamam) {
 }
 
 const { DB_YOLU } = await import("../lib/dosya-yollari.ts");
+if (!fs.existsSync(DB_YOLU)) {
+  console.error(`Veritabanı bulunamadı: ${DB_YOLU}`);
+  console.error(
+    "Komutu faz3-nextjs klasörünün içinde çalıştırın; uygulama en az bir kez açılmış olmalı."
+  );
+  process.exit(1);
+}
+
 const oncesiYedekYolu = path.join(path.dirname(DB_YOLU), ONCESI_YEDEK_ADI);
 
 if (yaz && fs.existsSync(oncesiYedekYolu)) {
@@ -60,7 +68,7 @@ if (yaz && fs.existsSync(oncesiYedekYolu)) {
   process.exit(1);
 }
 
-const { db, dbCheckpointEt } = await import("../lib/db.ts");
+const { db } = await import("../lib/db.ts");
 const { telefonYedeginiIceAl } = await import("../lib/telefon-yedegi-al.ts");
 
 try {
@@ -78,18 +86,27 @@ try {
     console.error(`Eklenecek işlem sayısı: ${onRapor.eklenecekIslemSayisi}`);
     process.exitCode = 1;
   } else if (!yaz) {
-    console.log("Deneme çalışması (veritabanına hiçbir kayıt yazılmadı):");
+    console.log("Deneme çalışması (telefon yedeğinden hiçbir kayıt yazılmadı):");
     console.log(`Eklenecek araç sayısı: ${onRapor.eklenecekAracSayisi}`);
     console.log(`Eklenecek işlem sayısı: ${onRapor.eklenecekIslemSayisi}`);
     console.log("Kaydetmek için komutu --yaz seçeneğiyle çalıştırın.");
   } else {
-    dbCheckpointEt();
-    fs.copyFileSync(DB_YOLU, oncesiYedekYolu, fs.constants.COPYFILE_EXCL);
-    const rapor = telefonYedeginiIceAl(okuma.araclar, { yaz: true });
-    console.log(`Aktarım öncesi veritabanı yedeği alındı: ${ONCESI_YEDEK_ADI}`);
-    console.log("Telefon yedeği başarıyla aktarıldı:");
-    console.log(`Eklenen araç sayısı: ${rapor.eklenecekAracSayisi}`);
-    console.log(`Eklenen işlem sayısı: ${rapor.eklenecekIslemSayisi}`);
+    let yedekTamam = false;
+    try {
+      await db.backup(oncesiYedekYolu);
+      yedekTamam = true;
+    } catch {
+      fs.rmSync(oncesiYedekYolu, { force: true });
+      console.error("Aktarım öncesi yedek alınamadı, hiçbir kayıt yazılmadı.");
+      process.exitCode = 1;
+    }
+    if (yedekTamam) {
+      const rapor = telefonYedeginiIceAl(okuma.araclar, { yaz: true });
+      console.log(`Aktarım öncesi veritabanı yedeği alındı: ${ONCESI_YEDEK_ADI}`);
+      console.log("Telefon yedeği başarıyla aktarıldı:");
+      console.log(`Eklenen araç sayısı: ${rapor.eklenecekAracSayisi}`);
+      console.log(`Eklenen işlem sayısı: ${rapor.eklenecekIslemSayisi}`);
+    }
   }
 } finally {
   db.close();
