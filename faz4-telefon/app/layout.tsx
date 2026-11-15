@@ -21,6 +21,8 @@ const tabanYol = process.env.TELEFON_BASE_PATH || "";
 export const metadata: Metadata = {
   title: "Servis Takip",
   description: "Oto elektrikçi ustası için bakım takip uygulaması",
+  // Private tool for one workshop and must not appear in search engines.
+  robots: { index: false, follow: false },
   manifest: `${tabanYol}/manifest.webmanifest`,
   appleWebApp: {
     capable: true,
