@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
-    "build": "next build && node scripts/export-duzelt.mjs",
+    "build": "next build && node scripts/export-duzelt.mjs && node scripts/sw-uret.mjs",
     "test": "node --import ./tests/kurulum.mjs --test \"tests/*.test.mjs\""
   },
   "dependencies": {
