@@ -2,7 +2,7 @@
 
 Bir oto elektrikçi ustası için yazılmış bakım takip uygulaması. Usta gelen aracı ve yapılan işi kaydeder, hangi aracın bakımının geçtiğini ya da yaklaştığını tek bakışta görür ve müşteriye WhatsApp'tan tek dokunuşla haber verir.
 
-Proje gerçek bir kullanıcı için yapıldı. Telefon sürümü Kasım 2026'da ustanın iPhone'unda bir haftalık denemeye girdi.
+Proje gerçek bir kullanıcı için yapıldı. Asıl hedef, uygulamanın dükkan bilgisayarında çalışan sürümüdür (`faz3-nextjs`). Kasım 2026'da önce telefon sürümüyle (`faz4-telefon`) bir haftalık deneme yapılıyor; deneme bitince kayıtlar aktarım aracıyla dükkan sürümüne taşınacak.
 
 <p align="center">
   <img src="docs/ekran-goruntuleri/arac-listesi.png" alt="Araç listesi: araçlar aciliyete göre sıralı, her satırda durum rozeti" width="23%">
