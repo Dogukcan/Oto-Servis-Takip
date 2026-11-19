@@ -5,7 +5,7 @@ Bir iş yarım kalırsa buraya not düşülür: ne yapıldı, ne eksik kaldı, n
 
 ## Açık işler
 
-- Telefon sürümü (`faz4-telefon`) gerçek kullanımda deneniyor. Denemenin sonucuna göre kayıtlar dükkan sürümüne (`faz3-nextjs`) taşınabilir; aktarım aracı hazır.
+- Telefon sürümü (`faz4-telefon`) bir haftalık deneme olarak gerçek kullanımda. Deneme bitince uygulama asıl plana döner: kayıtlar `faz3-nextjs` içindeki aktarım aracıyla dükkan bilgisayarındaki sürüme taşınır ve kullanım orada sürer.
 - Telefon sürümünde internetsiz kullanım ilk açılışta kendiliğinden hazır olmuyor ve uygulama hazır olup olmadığını göstermiyor. "İnternetsiz kullanıma hazır" göstergesi önerildi, karar bekleniyor.
 - KVKK için kod dışında kalanlar: müşteriye aydınlatma metni ve WhatsApp hatırlatması için onay.
 
